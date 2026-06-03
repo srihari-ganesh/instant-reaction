@@ -101,10 +101,15 @@
           </h1>
           <span class="text-xs text-amber-400 font-medium">Admin View</span>
         </div>
-        <button id="admin-copy-player-btn"
-          class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
-          Copy Player Link
-        </button>
+        <div class="flex items-center gap-2">
+          <button id="admin-submissions-btn"
+            class="px-3 py-1.5 active:scale-95 rounded-lg text-xs font-medium transition-all">
+          </button>
+          <button id="admin-copy-player-btn"
+            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
+            Copy Player Link
+          </button>
+        </div>
       </div>
     </div>
 
@@ -280,13 +285,19 @@
         setTimeout(() => copyBtn.textContent = 'Copy Link', 2000);
       });
 
+      const wordInput = document.getElementById('word-input');
+      onValue(ref(db, `sessions/${sessionId}/submissionsOpen`), snap => {
+        const open = snap.val() !== false;
+        wordInput.disabled = !open;
+        wordInput.placeholder = open ? 'Type a word…' : 'Submissions closed';
+      });
+
       document.getElementById('word-form').addEventListener('submit', async e => {
         e.preventDefault();
-        const input = document.getElementById('word-input');
-        const text  = input.value.trim();
-        if (!text) return;
-        input.value = '';
-        input.focus();
+        const text = wordInput.value.trim();
+        if (!text || wordInput.disabled) return;
+        wordInput.value = '';
+        wordInput.focus();
         await submitWord(sessionId, userId, text);
       });
 
@@ -345,6 +356,21 @@
         await navigator.clipboard.writeText(url);
         copyBtn.textContent = 'Copied!';
         setTimeout(() => copyBtn.textContent = 'Copy Player Link', 2000);
+      });
+
+      const subsBtn = document.getElementById('admin-submissions-btn');
+      const subsRef = ref(db, `sessions/${sessionId}/submissionsOpen`);
+      onValue(subsRef, snap => {
+        const open = snap.val() !== false;
+        subsBtn.textContent = open ? 'Stop Submissions' : 'Open Submissions';
+        subsBtn.className = `px-3 py-1.5 active:scale-95 rounded-lg text-xs font-medium transition-all ${
+          open ? 'bg-red-900/60 hover:bg-red-900 text-red-300' : 'bg-green-900/60 hover:bg-green-900 text-green-300'
+        }`;
+      });
+      subsBtn.addEventListener('click', async () => {
+        const snap = await get(subsRef);
+        const open = snap.val() !== false;
+        await set(subsRef, !open);
       });
 
       document.getElementById('admin-word-form').addEventListener('submit', async e => {
