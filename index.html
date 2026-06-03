@@ -132,7 +132,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getDatabase, ref, set, get, remove, onValue }
+    import { getDatabase, ref, set, get, remove, onValue, runTransaction }
       from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
 
     const firebaseConfig = {
@@ -241,6 +241,26 @@
 
     window.addEventListener('hashchange', route);
 
+    // ── Shared submit/delete helpers ─────────────────────────
+
+    async function submitWord(sessionId, userId, text) {
+      const key = wordKey(text);
+      const userRef = ref(db, `sessions/${sessionId}/userWords/${userId}/${key}`);
+      const existing = await get(userRef);
+      if (existing.val()) return; // no-op if already submitted
+      await runTransaction(ref(db, `sessions/${sessionId}/words/${key}`), current => {
+        if (!current) return { text, count: 1 };
+        return { ...current, count: (current.count || 0) + 1 };
+      });
+      await set(userRef, { text, ts: Date.now() });
+    }
+
+    async function deleteWord(sessionId, userId, key) {
+      await remove(ref(db, `sessions/${sessionId}/userWords/${userId}/${key}`));
+      await runTransaction(ref(db, `sessions/${sessionId}/words/${key}/count`),
+        n => Math.max(0, (n || 0) - 1));
+    }
+
     // ── Player ────────────────────────────────────────────────
 
     function initPlayer(sessionId) {
@@ -267,15 +287,10 @@
         if (!text) return;
         input.value = '';
         input.focus();
-        const key = wordKey(text);
-        const path = ref(db, `sessions/${sessionId}/submissions/${userId}/${key}`);
-        const existing = await get(path);
-        if (!existing.val()) {
-          await set(path, { text, ts: Date.now() });
-        }
+        await submitWord(sessionId, userId, text);
       });
 
-      onValue(ref(db, `sessions/${sessionId}/submissions/${userId}`), snap => {
+      onValue(ref(db, `sessions/${sessionId}/userWords/${userId}`), snap => {
         const data = snap.val();
         const list  = document.getElementById('player-words-list');
         const empty = document.getElementById('player-empty-state');
@@ -288,7 +303,6 @@
         }
 
         empty.classList.add('hidden');
-
         Object.entries(data)
           .map(([key, v]) => ({ key, ...v }))
           .sort((a, b) => (a.ts || 0) - (b.ts || 0))
@@ -305,65 +319,12 @@
       textSpan.className = 'flex-1 text-base font-semibold tracking-wide';
       textSpan.textContent = word.text;
 
-      const editBtn = document.createElement('button');
-      editBtn.className = 'text-xs text-gray-500 hover:text-violet-400 transition-colors px-2';
-      editBtn.textContent = 'Edit';
-
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'text-xs text-gray-500 hover:text-red-400 transition-colors px-2';
       deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', () => deleteWord(sessionId, userId, word.key));
 
-      el.append(textSpan, editBtn, deleteBtn);
-
-      editBtn.addEventListener('click', () => {
-        const input = document.createElement('input');
-        input.value = word.text;
-        input.className = 'flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-violet-500';
-
-        const saveBtn = document.createElement('button');
-        saveBtn.className = 'text-xs text-violet-400 hover:text-violet-300 px-2';
-        saveBtn.textContent = 'Save';
-
-        const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'text-xs text-gray-500 hover:text-gray-300 px-2';
-        cancelBtn.textContent = 'Cancel';
-
-        el.innerHTML = '';
-        el.append(input, saveBtn, cancelBtn);
-        input.focus();
-        input.select();
-
-        const doSave = async () => {
-          const newText = input.value.trim();
-          if (!newText || newText === word.text) {
-            el.innerHTML = '';
-            el.append(textSpan, editBtn, deleteBtn);
-            return;
-          }
-          const newKey = wordKey(newText);
-          if (newKey === word.key) {
-            await set(ref(db, `sessions/${sessionId}/submissions/${userId}/${word.key}/text`), newText);
-          } else {
-            await remove(ref(db, `sessions/${sessionId}/submissions/${userId}/${word.key}`));
-            await set(ref(db, `sessions/${sessionId}/submissions/${userId}/${newKey}`), { text: newText, ts: word.ts || Date.now() });
-          }
-        };
-
-        saveBtn.addEventListener('click', doSave);
-        cancelBtn.addEventListener('click', () => {
-          el.innerHTML = '';
-          el.append(textSpan, editBtn, deleteBtn);
-        });
-        input.addEventListener('keydown', e => {
-          if (e.key === 'Enter') doSave();
-          if (e.key === 'Escape') cancelBtn.click();
-        });
-      });
-
-      deleteBtn.addEventListener('click', () => {
-        remove(ref(db, `sessions/${sessionId}/submissions/${userId}/${word.key}`));
-      });
-
+      el.append(textSpan, deleteBtn);
       return el;
     }
 
@@ -371,21 +332,6 @@
 
     function initAdmin(sessionId) {
       const userId = getUserId();
-
-      document.getElementById('admin-word-form').addEventListener('submit', async e => {
-        e.preventDefault();
-        const input = document.getElementById('admin-word-input');
-        const text  = input.value.trim();
-        if (!text) return;
-        input.value = '';
-        input.focus();
-        const key = wordKey(text);
-        const path = ref(db, `sessions/${sessionId}/submissions/${userId}/${key}`);
-        const existing = await get(path);
-        if (!existing.val()) {
-          await set(path, { text, ts: Date.now() });
-        }
-      });
 
       onValue(ref(db, `sessions/${sessionId}/name`), snap => {
         const name = snap.val() || 'Party Words';
@@ -401,44 +347,34 @@
         setTimeout(() => copyBtn.textContent = 'Copy Player Link', 2000);
       });
 
-      let allSubmissions = {};
-      let adminWords = {};
+      document.getElementById('admin-word-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const input = document.getElementById('admin-word-input');
+        const text  = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        input.focus();
+        await submitWord(sessionId, userId, text);
+      });
 
-      function rerender() {
+      onValue(ref(db, `sessions/${sessionId}/words`), snap => {
+        const data = snap.val();
         const list  = document.getElementById('admin-words-list');
         const empty = document.getElementById('admin-empty-state');
 
-        const counts = {};
-        Object.values(allSubmissions).forEach(userSubs => {
-          Object.entries(userSubs).forEach(([key, v]) => {
-            if (!counts[key]) counts[key] = { text: v.text, count: 0 };
-            counts[key].count++;
-          });
-        });
-
-        const words = Object.entries(counts)
-          .map(([key, v]) => ({ key, ...v, ...(adminWords[key] || {}) }))
-          .sort((a, b) => b.count - a.count);
-
         list.innerHTML = '';
 
-        if (words.length === 0) {
+        if (!data) {
           empty.classList.remove('hidden');
           return;
         }
 
+        const words = Object.entries(data)
+          .map(([key, v]) => ({ key, ...v }))
+          .sort((a, b) => b.count - a.count);
+
         empty.classList.add('hidden');
         words.forEach(word => list.appendChild(makeAdminRow(word, sessionId)));
-      }
-
-      onValue(ref(db, `sessions/${sessionId}/submissions`), snap => {
-        allSubmissions = snap.val() || {};
-        rerender();
-      });
-
-      onValue(ref(db, `sessions/${sessionId}/adminWords`), snap => {
-        adminWords = snap.val() || {};
-        rerender();
       });
     }
 
@@ -465,11 +401,11 @@
       editBtn.className = 'text-xs text-gray-500 hover:text-violet-400 transition-colors px-2';
       editBtn.textContent = 'Edit';
 
-      const flagBtn = document.createElement('button');
-      flagBtn.className = 'text-xs px-2 transition-colors text-gray-500 hover:text-white';
-      flagBtn.textContent = word.flagged ? 'Unhide' : 'Hide';
+      const hideBtn = document.createElement('button');
+      hideBtn.className = 'text-xs px-2 transition-colors text-gray-500 hover:text-white';
+      hideBtn.textContent = word.flagged ? 'Unhide' : 'Hide';
 
-      el.append(countBadge, textSpan, editBtn, flagBtn);
+      el.append(countBadge, textSpan, editBtn, hideBtn);
 
       editBtn.addEventListener('click', () => {
         const input = document.createElement('input');
@@ -492,16 +428,16 @@
         const doSave = async () => {
           const newText = input.value.trim();
           if (newText && newText !== word.text) {
-            await set(ref(db, `sessions/${sessionId}/adminWords/${word.key}/editedText`), newText);
+            await set(ref(db, `sessions/${sessionId}/words/${word.key}/editedText`), newText);
           } else {
-            await remove(ref(db, `sessions/${sessionId}/adminWords/${word.key}/editedText`));
+            await remove(ref(db, `sessions/${sessionId}/words/${word.key}/editedText`));
           }
         };
 
         saveBtn.addEventListener('click', doSave);
         cancelBtn.addEventListener('click', () => {
           el.innerHTML = '';
-          el.append(countBadge, textSpan, editBtn, flagBtn);
+          el.append(countBadge, textSpan, editBtn, hideBtn);
         });
         input.addEventListener('keydown', e => {
           if (e.key === 'Enter') doSave();
@@ -509,11 +445,11 @@
         });
       });
 
-      flagBtn.addEventListener('click', () => {
+      hideBtn.addEventListener('click', () => {
         if (word.flagged) {
-          remove(ref(db, `sessions/${sessionId}/adminWords/${word.key}/flagged`));
+          remove(ref(db, `sessions/${sessionId}/words/${word.key}/flagged`));
         } else {
-          set(ref(db, `sessions/${sessionId}/adminWords/${word.key}/flagged`), true);
+          set(ref(db, `sessions/${sessionId}/words/${word.key}/flagged`), true);
         }
       });
 
