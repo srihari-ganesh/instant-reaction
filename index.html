@@ -305,7 +305,7 @@
         empty.classList.add('hidden');
         Object.entries(data)
           .map(([key, v]) => ({ key, ...v }))
-          .sort((a, b) => (a.ts || 0) - (b.ts || 0))
+          .sort((a, b) => a.text.localeCompare(b.text))
           .forEach(word => list.appendChild(makePlayerRow(word, sessionId, userId)));
       });
     }
@@ -371,7 +371,7 @@
 
         const words = Object.entries(data)
           .map(([key, v]) => ({ key, ...v }))
-          .sort((a, b) => b.count - a.count);
+          .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
 
         empty.classList.add('hidden');
         words.forEach(word => list.appendChild(makeAdminRow(word, sessionId)));
