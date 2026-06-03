@@ -10,13 +10,14 @@
       from { opacity: 0; transform: translateY(-10px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    .word-row { animation: slide-in 0.6s ease forwards; }
+    .word-row { animation: slide-in 0.3s ease forwards; }
     body { font-family: 'Inter', system-ui, sans-serif; }
+    button { touch-action: manipulation; }
   </style>
 </head>
 <body class="bg-gray-950 text-white min-h-screen">
 
-  <!-- ── Landing ─────────────────────────────────────────────── -->
+  <!-- Landing -->
   <div id="view-landing" class="flex flex-col items-center justify-center min-h-screen px-4">
     <div class="text-center max-w-sm w-full">
       <div class="text-5xl mb-4">🎉</div>
@@ -53,27 +54,20 @@
     </div>
   </div>
 
-  <!-- ── Party ───────────────────────────────────────────────── -->
-  <div id="view-party" class="hidden min-h-screen flex flex-col">
-
-    <!-- Header -->
+  <!-- Player view -->
+  <div id="view-player" class="hidden min-h-screen flex flex-col">
     <div class="sticky top-0 z-10 bg-gray-950/80 backdrop-blur border-b border-gray-900 px-4 py-3">
       <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <h1 id="party-name-display" class="text-lg font-black bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent truncate">
-            Party Words
-          </h1>
-        </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button id="copy-btn"
-            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
-            Copy Link
-          </button>
-        </div>
+        <h1 id="player-party-name" class="text-lg font-black bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent truncate">
+          Party Words
+        </h1>
+        <button id="player-copy-btn"
+          class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
+          Copy Link
+        </button>
       </div>
     </div>
 
-    <!-- Input -->
     <div class="max-w-xl mx-auto w-full px-4 pt-8 pb-3">
       <form id="word-form" class="flex gap-3">
         <input id="word-input" placeholder="Type a word…" autocomplete="off" spellcheck="false"
@@ -87,24 +81,60 @@
       </form>
     </div>
 
-    <!-- Words -->
     <div class="max-w-xl mx-auto w-full px-4 pb-10 flex-1">
-      <div id="words-list" class="space-y-2"></div>
-      <div id="empty-state" class="text-center py-20 text-gray-700">
+      <p class="text-xs text-gray-600 mb-3">Your submissions — only you can see these</p>
+      <div id="player-words-list" class="space-y-2"></div>
+      <div id="player-empty-state" class="text-center py-20 text-gray-700">
         <p class="text-3xl mb-3">✏️</p>
-        <p class="text-sm">No words yet — be the first!</p>
+        <p class="text-sm">Submit your first word above!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin view -->
+  <div id="view-admin" class="hidden min-h-screen flex flex-col">
+    <div class="sticky top-0 z-10 bg-gray-950/80 backdrop-blur border-b border-gray-900 px-4 py-3">
+      <div class="max-w-2xl mx-auto flex items-center justify-between gap-3">
+        <div>
+          <h1 id="admin-party-name" class="text-lg font-black bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
+            Party Words
+          </h1>
+          <span class="text-xs text-amber-400 font-medium">Admin View</span>
+        </div>
+        <button id="admin-copy-player-btn"
+          class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
+          Copy Player Link
+        </button>
+      </div>
+    </div>
+
+    <div class="max-w-2xl mx-auto w-full px-4 pt-6 pb-3">
+      <form id="admin-word-form" class="flex gap-3 mb-6">
+        <input id="admin-word-input" placeholder="Submit your own word…" autocomplete="off" spellcheck="false"
+          class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-lg text-white
+                 placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors" />
+        <button type="submit"
+          class="px-6 py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-2xl font-bold
+                 hover:opacity-90 active:scale-95 transition-all">
+          →
+        </button>
+      </form>
+    </div>
+
+    <div class="max-w-2xl mx-auto w-full px-4 pb-10 flex-1">
+      <div id="admin-words-list" class="space-y-2"></div>
+      <div id="admin-empty-state" class="text-center py-20 text-gray-700">
+        <p class="text-3xl mb-3">⏳</p>
+        <p class="text-sm">Waiting for submissions…</p>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { initializeApp }                           from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
-    import { getDatabase, ref, set, runTransaction, onValue }
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getDatabase, ref, set, get, remove, onValue }
       from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
 
-    // ────────────────────────────────────────────────────────────
-    // ⚠️  Paste your Firebase project config here
-    // ────────────────────────────────────────────────────────────
     const firebaseConfig = {
       apiKey:            "AIzaSyBfQLq2wHfX-t8WNgd1cVyE3suCa6P26mU",
       authDomain:        "party-8bb28.firebaseapp.com",
@@ -114,51 +144,48 @@
       messagingSenderId: "823884724230",
       appId:             "1:823884724230:web:28e38bd5b74684c6f62b87",
     };
-    // ────────────────────────────────────────────────────────────
 
     const app = initializeApp(firebaseConfig);
     const db  = getDatabase(app);
-
-    // ── Helpers ───────────────────────────────────────────────
-
-    function sessionId() {
-      // Accept full URL or bare code in the hash
-      const raw = location.hash.slice(1);
-      try { return new URL(raw).hash.slice(1) || raw; } catch { return raw || null; }
-    }
 
     function generateId() {
       return Array.from(crypto.getRandomValues(new Uint8Array(10)))
         .map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 14);
     }
 
-    function esc(s) {
-      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    function wordKey(text) {
+      return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'word';
     }
 
-    function fmtTime(ts) {
-      if (!ts) return '';
-      return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    function getUserId() {
+      let id = localStorage.getItem('party-user-id');
+      if (!id) { id = generateId(); localStorage.setItem('party-user-id', id); }
+      return id;
     }
 
-    // ── Routing ───────────────────────────────────────────────
-
-    function route() {
-      const id = sessionId();
-      document.getElementById('view-landing').classList.toggle('hidden', !!id);
-      document.getElementById('view-party').classList.toggle('hidden', !id);
-      if (id) initParty(id);
+    function parseHash() {
+      const raw = location.hash.slice(1);
+      if (!raw) return { sessionId: null, adminToken: null };
+      const slash = raw.indexOf('/');
+      if (slash === -1) return { sessionId: raw, adminToken: null };
+      return { sessionId: raw.slice(0, slash), adminToken: raw.slice(slash + 1) };
     }
 
-    window.addEventListener('hashchange', route);
+    function showOnly(id) {
+      ['view-landing', 'view-player', 'view-admin'].forEach(v =>
+        document.getElementById(v).classList.toggle('hidden', v !== id)
+      );
+    }
 
     // ── Landing ───────────────────────────────────────────────
 
     document.getElementById('start-btn').addEventListener('click', async () => {
-      const id   = generateId();
+      const sessionId  = generateId();
+      const adminToken = generateId();
       const name = document.getElementById('party-name-input').value.trim();
-      if (name) await set(ref(db, `sessions/${id}/name`), name);
-      location.hash = id;
+      await set(ref(db, `sessions/${sessionId}/adminToken`), adminToken);
+      if (name) await set(ref(db, `sessions/${sessionId}/name`), name);
+      location.hash = `${sessionId}/${adminToken}`;
     });
 
     document.getElementById('party-name-input').addEventListener('keydown', e => {
@@ -168,7 +195,6 @@
     document.getElementById('join-btn').addEventListener('click', () => {
       const val = document.getElementById('join-input').value.trim();
       if (!val) return;
-      // If it looks like a URL, extract the hash; otherwise treat as bare code
       try {
         const u = new URL(val);
         location.hash = u.hash.slice(1) || val;
@@ -181,61 +207,59 @@
       if (e.key === 'Enter') document.getElementById('join-btn').click();
     });
 
-    // ── Vote state (localStorage) ─────────────────────────────
+    // ── Routing ───────────────────────────────────────────────
 
-    function getVotes(sid) {
-      try { return JSON.parse(localStorage.getItem(`votes-${sid}`) || '{}'); } catch { return {}; }
+    let currentView = null;
+
+    async function route() {
+      const { sessionId, adminToken } = parseHash();
+
+      if (!sessionId) {
+        showOnly('view-landing');
+        currentView = 'landing';
+        return;
+      }
+
+      if (adminToken) {
+        const snap = await get(ref(db, `sessions/${sessionId}/adminToken`));
+        if (snap.val() === adminToken) {
+          if (currentView !== 'admin') {
+            currentView = 'admin';
+            showOnly('view-admin');
+            initAdmin(sessionId);
+          }
+          return;
+        }
+      }
+
+      if (currentView !== 'player') {
+        currentView = 'player';
+        showOnly('view-player');
+        initPlayer(sessionId);
+      }
     }
-    function saveVote(sid, wordKey, dir) {
-      const v = getVotes(sid); v[wordKey] = dir;
-      localStorage.setItem(`votes-${sid}`, JSON.stringify(v));
-    }
-    function updateScore(el, word) {
-      const score = (word.upvotes || 0) - (word.downvotes || 0);
-      const badge = el.querySelector('[data-score]');
-      if (!badge) return;
-      badge.textContent = (score > 0 ? '+' : '') + score;
-      badge.className = 'shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold w-10 text-center ' + (
-        score > 0 ? 'bg-green-900/50 text-green-400' :
-        score < 0 ? 'bg-red-900/50 text-red-400' :
-                    'bg-gray-800 text-gray-500'
-      );
-    }
 
-    function applyHighlight(el, dir) {
-      const up   = el.querySelector('[data-vote-up]');
-      const down = el.querySelector('[data-vote-down]');
-      if (!up || !down) return;
-      up.classList.toggle('text-green-400', dir === 'up');
-      up.classList.toggle('text-gray-500',  dir !== 'up');
-      down.classList.toggle('text-red-400',   dir === 'down');
-      down.classList.toggle('text-gray-500',  dir !== 'down');
-    }
+    window.addEventListener('hashchange', route);
 
-    // ── Party ─────────────────────────────────────────────────
+    // ── Player ────────────────────────────────────────────────
 
-    let partyInited = false;
+    function initPlayer(sessionId) {
+      const userId = getUserId();
 
-    function initParty(id) {
-      if (partyInited) return; // only wire up once per page load
-      partyInited = true;
-
-      // Party name (live, in case someone sets it later)
-      onValue(ref(db, `sessions/${id}/name`), snap => {
-        const name = snap.val();
-        document.getElementById('party-name-display').textContent = name || 'Party Words';
-        document.title = name ? `${name} — Party Words` : 'Party Words';
+      onValue(ref(db, `sessions/${sessionId}/name`), snap => {
+        const name = snap.val() || 'Party Words';
+        document.getElementById('player-party-name').textContent = name;
+        document.title = `${name} — Party Words`;
       });
 
-      // Copy link
-      const copyBtn = document.getElementById('copy-btn');
+      const copyBtn = document.getElementById('player-copy-btn');
       copyBtn.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(location.href);
+        const url = `${location.origin}${location.pathname}#${sessionId}`;
+        await navigator.clipboard.writeText(url);
         copyBtn.textContent = 'Copied!';
         setTimeout(() => copyBtn.textContent = 'Copy Link', 2000);
       });
 
-      // Submit
       document.getElementById('word-form').addEventListener('submit', async e => {
         e.preventDefault();
         const input = document.getElementById('word-input');
@@ -243,121 +267,257 @@
         if (!text) return;
         input.value = '';
         input.focus();
-        const SUBMIT_UPVOTE_WEIGHT = 1;
-        const key = text.toLowerCase().replace(/\s+/g, '-');
-        let isNew = false;
-        await runTransaction(ref(db, `sessions/${id}/words/${key}`), current => {
-          if (current === null) { isNew = true; return { text, count: 1, upvotes: 0, downvotes: 0, ts: Date.now() }; }
-          return { ...current, upvotes: (current.upvotes || 0) + SUBMIT_UPVOTE_WEIGHT };
-        });
-        if (!isNew) saveVote(id, key, 'up');
+        const key = wordKey(text);
+        const path = ref(db, `sessions/${sessionId}/submissions/${userId}/${key}`);
+        const existing = await get(path);
+        if (!existing.val()) {
+          await set(path, { text, ts: Date.now() });
+        }
       });
 
-      // Live word list
-      const latestWords = new Map();
-      let firstLoad = true;
-
-      function makeRow(word, myVotes) {
-        const el = document.createElement('div');
-        el.dataset.key = word.key;
-        el.className = 'word-row flex items-center gap-3 ' +
-          'bg-gray-900 border border-gray-800/60 rounded-xl px-4 py-3';
-        el.innerHTML =
-          `<button data-vote-up class="flex flex-col items-center text-gray-500 hover:text-green-400 transition-colors leading-none">
-             <span class="text-base">▲</span>
-             <span data-upvotes class="text-xs font-bold mt-0.5">${word.upvotes || 0}</span>
-           </button>` +
-          `<button data-vote-down class="flex flex-col items-center text-gray-500 hover:text-red-400 transition-colors leading-none">
-             <span class="text-base">▼</span>
-             <span data-downvotes class="text-xs font-bold mt-0.5">${word.downvotes || 0}</span>
-           </button>` +
-          `<span class="flex-1 text-base font-semibold tracking-wide">${esc(word.text)}</span>` +
-          `<span data-score class="shrink-0 px-2.5 py-0.5 rounded-full text-xs font-bold w-10 text-center"></span>`;
-        updateScore(el, word);
-        applyHighlight(el, myVotes[word.key]);
-        el.querySelector('[data-vote-up]').addEventListener('click', async () => {
-          saveVote(id, word.key, 'up');
-          applyHighlight(el, 'up');
-          await runTransaction(ref(db, `sessions/${id}/words/${word.key}/upvotes`), n => (n || 0) + 1);
-        });
-        el.querySelector('[data-vote-down]').addEventListener('click', async () => {
-          saveVote(id, word.key, 'down');
-          applyHighlight(el, 'down');
-          await runTransaction(ref(db, `sessions/${id}/words/${word.key}/downvotes`), n => (n || 0) + 1);
-        });
-        return el;
-      }
-
-      function biasedShuffle(words) {
-        const now = Date.now();
-        return words
-          .map(w => {
-            const totalVotes = (w.upvotes || 0) + (w.downvotes || 0);
-            const ageMins    = (now - (w.ts || now)) / 60000;
-            const weight     = 1 / ((totalVotes + 1) * (1 + ageMins / 5));
-            return { w, key: Math.random() * weight };
-          })
-          .sort((a, b) => b.key - a.key)
-          .map(x => x.w);
-      }
-
-      function applySort(list) {
-        list.style.pointerEvents = 'none';
-        biasedShuffle([...latestWords.values()]).forEach(w => {
-          const el = list.querySelector(`[data-key="${w.key}"]`);
-          if (el) list.appendChild(el);
-        });
-        setTimeout(() => { list.style.pointerEvents = ''; }, 800);
-      }
-
-      onValue(ref(db, `sessions/${id}/words`), snap => {
+      onValue(ref(db, `sessions/${sessionId}/submissions/${userId}`), snap => {
         const data = snap.val();
-        const list  = document.getElementById('words-list');
-        const empty = document.getElementById('empty-state');
+        const list  = document.getElementById('player-words-list');
+        const empty = document.getElementById('player-empty-state');
+
+        list.innerHTML = '';
 
         if (!data) {
-          list.innerHTML = '';
-          latestWords.clear();
-          firstLoad = true;
           empty.classList.remove('hidden');
           return;
         }
 
         empty.classList.add('hidden');
-        const myVotes = getVotes(id);
-        const newKeys = [];
 
-        Object.entries(data).forEach(([key, v]) => {
-          if (!latestWords.has(key)) newKeys.push(key);
-          latestWords.set(key, { key, ...v });
+        Object.entries(data)
+          .map(([key, v]) => ({ key, ...v }))
+          .sort((a, b) => (a.ts || 0) - (b.ts || 0))
+          .forEach(word => list.appendChild(makePlayerRow(word, sessionId, userId)));
+      });
+    }
+
+    function makePlayerRow(word, sessionId, userId) {
+      const el = document.createElement('div');
+      el.dataset.key = word.key;
+      el.className = 'word-row flex items-center gap-3 bg-gray-900 border border-gray-800/60 rounded-xl px-4 py-3';
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'flex-1 text-base font-semibold tracking-wide';
+      textSpan.textContent = word.text;
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'text-xs text-gray-500 hover:text-violet-400 transition-colors px-2';
+      editBtn.textContent = 'Edit';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'text-xs text-gray-500 hover:text-red-400 transition-colors px-2';
+      deleteBtn.textContent = 'Delete';
+
+      el.append(textSpan, editBtn, deleteBtn);
+
+      editBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.value = word.text;
+        input.className = 'flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-violet-500';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'text-xs text-violet-400 hover:text-violet-300 px-2';
+        saveBtn.textContent = 'Save';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'text-xs text-gray-500 hover:text-gray-300 px-2';
+        cancelBtn.textContent = 'Cancel';
+
+        el.innerHTML = '';
+        el.append(input, saveBtn, cancelBtn);
+        input.focus();
+        input.select();
+
+        const doSave = async () => {
+          const newText = input.value.trim();
+          if (!newText || newText === word.text) {
+            el.innerHTML = '';
+            el.append(textSpan, editBtn, deleteBtn);
+            return;
+          }
+          const newKey = wordKey(newText);
+          if (newKey === word.key) {
+            await set(ref(db, `sessions/${sessionId}/submissions/${userId}/${word.key}/text`), newText);
+          } else {
+            await remove(ref(db, `sessions/${sessionId}/submissions/${userId}/${word.key}`));
+            await set(ref(db, `sessions/${sessionId}/submissions/${userId}/${newKey}`), { text: newText, ts: word.ts || Date.now() });
+          }
+        };
+
+        saveBtn.addEventListener('click', doSave);
+        cancelBtn.addEventListener('click', () => {
+          el.innerHTML = '';
+          el.append(textSpan, editBtn, deleteBtn);
         });
-        latestWords.forEach((_, key) => { if (!data[key]) { latestWords.delete(key); list.querySelector(`[data-key="${key}"]`)?.remove(); } });
-
-        // Update existing rows in-place (no repositioning)
-        list.querySelectorAll('[data-key]').forEach(el => {
-          const word = latestWords.get(el.dataset.key);
-          if (!word) return;
-          el.querySelector('[data-upvotes]').textContent   = word.upvotes   || 0;
-          el.querySelector('[data-downvotes]').textContent = word.downvotes || 0;
-          updateScore(el, word);
-          applyHighlight(el, myVotes[el.dataset.key]);
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') doSave();
+          if (e.key === 'Escape') cancelBtn.click();
         });
+      });
 
-        if (firstLoad) {
-          biasedShuffle([...latestWords.values()])
-            .forEach(word => list.appendChild(makeRow(word, myVotes)));
-          firstLoad = false;
-        } else {
-          // New words go to the top so they're visible immediately
-          newKeys.forEach(key => list.prepend(makeRow(latestWords.get(key), myVotes)));
+      deleteBtn.addEventListener('click', () => {
+        remove(ref(db, `sessions/${sessionId}/submissions/${userId}/${word.key}`));
+      });
+
+      return el;
+    }
+
+    // ── Admin ─────────────────────────────────────────────────
+
+    function initAdmin(sessionId) {
+      const userId = getUserId();
+
+      document.getElementById('admin-word-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const input = document.getElementById('admin-word-input');
+        const text  = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        input.focus();
+        const key = wordKey(text);
+        const path = ref(db, `sessions/${sessionId}/submissions/${userId}/${key}`);
+        const existing = await get(path);
+        if (!existing.val()) {
+          await set(path, { text, ts: Date.now() });
         }
       });
 
-      // Re-sort every 5 seconds
-      setInterval(() => {
-        const list = document.getElementById('words-list');
-        if (list && latestWords.size > 0) applySort(list);
-      }, 5000);
+      onValue(ref(db, `sessions/${sessionId}/name`), snap => {
+        const name = snap.val() || 'Party Words';
+        document.getElementById('admin-party-name').textContent = name;
+        document.title = `${name} [Admin] — Party Words`;
+      });
+
+      const copyBtn = document.getElementById('admin-copy-player-btn');
+      copyBtn.addEventListener('click', async () => {
+        const url = `${location.origin}${location.pathname}#${sessionId}`;
+        await navigator.clipboard.writeText(url);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => copyBtn.textContent = 'Copy Player Link', 2000);
+      });
+
+      let allSubmissions = {};
+      let adminWords = {};
+
+      function rerender() {
+        const list  = document.getElementById('admin-words-list');
+        const empty = document.getElementById('admin-empty-state');
+
+        const counts = {};
+        Object.values(allSubmissions).forEach(userSubs => {
+          Object.entries(userSubs).forEach(([key, v]) => {
+            if (!counts[key]) counts[key] = { text: v.text, count: 0 };
+            counts[key].count++;
+          });
+        });
+
+        const words = Object.entries(counts)
+          .map(([key, v]) => ({ key, ...v, ...(adminWords[key] || {}) }))
+          .sort((a, b) => b.count - a.count);
+
+        list.innerHTML = '';
+
+        if (words.length === 0) {
+          empty.classList.remove('hidden');
+          return;
+        }
+
+        empty.classList.add('hidden');
+        words.forEach(word => list.appendChild(makeAdminRow(word, sessionId)));
+      }
+
+      onValue(ref(db, `sessions/${sessionId}/submissions`), snap => {
+        allSubmissions = snap.val() || {};
+        rerender();
+      });
+
+      onValue(ref(db, `sessions/${sessionId}/adminWords`), snap => {
+        adminWords = snap.val() || {};
+        rerender();
+      });
+    }
+
+    function makeAdminRow(word, sessionId) {
+      const el = document.createElement('div');
+      el.dataset.key = word.key;
+      el.className = `word-row flex items-center gap-3 bg-gray-900 border rounded-xl px-4 py-3 ${word.flagged ? 'border-red-900/60 opacity-60' : 'border-gray-800/60'}`;
+
+      const countBadge = document.createElement('span');
+      countBadge.className = 'shrink-0 w-8 h-8 flex items-center justify-center bg-violet-900/50 text-violet-300 rounded-full text-sm font-bold';
+      countBadge.textContent = word.count;
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'flex-1 text-base font-semibold tracking-wide';
+      textSpan.textContent = word.editedText || word.text;
+      if (word.editedText) {
+        const orig = document.createElement('span');
+        orig.className = 'text-xs text-gray-500 ml-2';
+        orig.textContent = `(${word.text})`;
+        textSpan.append(orig);
+      }
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'text-xs text-gray-500 hover:text-violet-400 transition-colors px-2';
+      editBtn.textContent = 'Edit';
+
+      const flagBtn = document.createElement('button');
+      flagBtn.className = `text-xs px-2 transition-colors ${word.flagged ? 'text-red-400 hover:text-gray-500' : 'text-gray-500 hover:text-red-400'}`;
+      flagBtn.textContent = word.flagged ? 'Unflag' : 'Flag';
+
+      el.append(countBadge, textSpan, editBtn, flagBtn);
+
+      editBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.value = word.editedText || word.text;
+        input.className = 'flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-violet-500';
+
+        const saveBtn = document.createElement('button');
+        saveBtn.className = 'text-xs text-violet-400 hover:text-violet-300 px-2';
+        saveBtn.textContent = 'Save';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'text-xs text-gray-500 hover:text-gray-300 px-2';
+        cancelBtn.textContent = 'Cancel';
+
+        el.innerHTML = '';
+        el.append(countBadge, input, saveBtn, cancelBtn);
+        input.focus();
+        input.select();
+
+        const doSave = async () => {
+          const newText = input.value.trim();
+          if (newText && newText !== word.text) {
+            await set(ref(db, `sessions/${sessionId}/adminWords/${word.key}/editedText`), newText);
+          } else {
+            await remove(ref(db, `sessions/${sessionId}/adminWords/${word.key}/editedText`));
+          }
+        };
+
+        saveBtn.addEventListener('click', doSave);
+        cancelBtn.addEventListener('click', () => {
+          el.innerHTML = '';
+          el.append(countBadge, textSpan, editBtn, flagBtn);
+        });
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') doSave();
+          if (e.key === 'Escape') cancelBtn.click();
+        });
+      });
+
+      flagBtn.addEventListener('click', () => {
+        if (word.flagged) {
+          remove(ref(db, `sessions/${sessionId}/adminWords/${word.key}/flagged`));
+        } else {
+          set(ref(db, `sessions/${sessionId}/adminWords/${word.key}/flagged`), true);
+        }
+      });
+
+      return el;
     }
 
     route();
