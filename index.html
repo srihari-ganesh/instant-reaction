@@ -566,7 +566,7 @@
         if (!data) { empty.classList.remove('hidden'); return; }
         const words = Object.entries(data)
           .map(([key, v]) => ({ key, ...v }))
-          .sort((a, b) => b.count - a.count || a.text.localeCompare(b.text));
+          .sort((a, b) => a.text.localeCompare(b.text));
         empty.classList.add('hidden');
         words.forEach(word => list.appendChild(makeAdminRow(word, sessionId)));
       });
