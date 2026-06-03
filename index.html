@@ -398,7 +398,7 @@
       onValue(ref(db, `sessions/${sessionId}/submissionsOpen`), snap => {
         const open = snap.val() !== false;
         wordInput.disabled = !open;
-        wordInput.placeholder = open ? 'Type a word…' : 'Submissions closed';
+        wordInput.placeholder = open ? 'Type a word…' : 'Submissions paused';
       });
 
       document.getElementById('word-form').addEventListener('submit', async e => {
@@ -510,12 +510,17 @@
       // Submissions toggle
       const subsBtn = document.getElementById('admin-submissions-btn');
       const subsRef  = ref(db, `sessions/${sessionId}/submissionsOpen`);
+      let submissionsOpen = true;
+
       onValue(subsRef, snap => {
-        const open = snap.val() !== false;
-        subsBtn.textContent = open ? 'Stop Submissions' : 'Open Submissions';
+        submissionsOpen = snap.val() !== false;
+        subsBtn.textContent = submissionsOpen ? 'Pause Submissions' : 'Resume Submissions';
         subsBtn.className = `px-3 py-1.5 active:scale-95 rounded-lg text-xs font-medium transition-all ${
-          open ? 'bg-red-900/60 hover:bg-red-900 text-red-300' : 'bg-green-900/60 hover:bg-green-900 text-green-300'
+          submissionsOpen ? 'bg-red-900/60 hover:bg-red-900 text-red-300' : 'bg-green-900/60 hover:bg-green-900 text-green-300'
         }`;
+        // Only show Start Game when submissions are paused and in lobby
+        const phase = document.getElementById('admin-phase-btn').dataset.phase || 'lobby';
+        document.getElementById('admin-phase-btn').classList.toggle('hidden', submissionsOpen || phase === 'game');
       });
       subsBtn.addEventListener('click', async () => {
         const s = await get(subsRef);
@@ -527,7 +532,9 @@
       const phaseRef  = ref(db, `sessions/${sessionId}/phase`);
       onValue(phaseRef, snap => {
         const phase = snap.val() || 'lobby';
+        phaseBtn.dataset.phase = phase;
         phaseBtn.textContent = phase === 'lobby' ? 'Start Game' : 'Back to Lobby';
+        phaseBtn.classList.toggle('hidden', phase === 'lobby' && submissionsOpen);
         document.getElementById('admin-lobby').classList.toggle('hidden', phase === 'game');
         document.getElementById('admin-game').classList.toggle('hidden', phase !== 'game');
         subsBtn.classList.toggle('hidden', phase === 'game');
