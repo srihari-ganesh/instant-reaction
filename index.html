@@ -445,14 +445,14 @@
     function makeAdminRow(word, sessionId) {
       const el = document.createElement('div');
       el.dataset.key = word.key;
-      el.className = `word-row flex items-center gap-3 bg-gray-900 border rounded-xl px-4 py-3 ${word.flagged ? 'border-red-900/60 opacity-60' : 'border-gray-800/60'}`;
+      el.className = 'word-row flex items-center gap-3 bg-gray-900 border border-gray-800/60 rounded-xl px-4 py-3';
 
       const countBadge = document.createElement('span');
       countBadge.className = 'shrink-0 w-8 h-8 flex items-center justify-center bg-violet-900/50 text-violet-300 rounded-full text-sm font-bold';
       countBadge.textContent = word.count;
 
       const textSpan = document.createElement('span');
-      textSpan.className = 'flex-1 text-base font-semibold tracking-wide';
+      textSpan.className = `flex-1 text-base font-semibold tracking-wide ${word.flagged ? 'line-through text-gray-500' : ''}`;
       textSpan.textContent = word.editedText || word.text;
       if (word.editedText) {
         const orig = document.createElement('span');
@@ -466,8 +466,8 @@
       editBtn.textContent = 'Edit';
 
       const flagBtn = document.createElement('button');
-      flagBtn.className = `text-xs px-2 transition-colors ${word.flagged ? 'text-red-400 hover:text-gray-500' : 'text-gray-500 hover:text-red-400'}`;
-      flagBtn.textContent = word.flagged ? 'Unflag' : 'Flag';
+      flagBtn.className = 'text-xs px-2 transition-colors text-gray-500 hover:text-white';
+      flagBtn.textContent = word.flagged ? 'Unhide' : 'Hide';
 
       el.append(countBadge, textSpan, editBtn, flagBtn);
 
