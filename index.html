@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Party Words</title>
+  <title>Instant Reaction</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @keyframes slide-in {
@@ -22,16 +22,16 @@
     <div class="text-center max-w-sm w-full">
       <div class="text-5xl mb-4">🎉</div>
       <h1 class="text-5xl font-black mb-2 bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
-        Party Words
+        Instant Reaction
       </h1>
-      <p class="text-gray-500 mb-6 text-sm">Start a session, share the link, collect words live.</p>
-      <input id="party-name-input" placeholder="Name your party (optional)"
+      <p class="text-gray-500 mb-6 text-sm">Submit words, play rounds, crown a winner.</p>
+      <input id="party-name-input" placeholder="Name your game (optional)"
         class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm
                placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors mb-3" />
       <button id="start-btn"
         class="w-full py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-2xl text-lg font-bold
                hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-violet-900/40 mb-6">
-        Start a Party
+        New Game
       </button>
       <div class="flex items-center gap-3 mb-5">
         <div class="flex-1 h-px bg-gray-800"></div>
@@ -55,12 +55,18 @@
     <div class="sticky top-0 z-10 bg-gray-950/80 backdrop-blur border-b border-gray-900 px-4 py-3">
       <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
         <h1 id="player-party-name" class="text-lg font-black bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent truncate">
-          Party Words
+          Instant Reaction
         </h1>
-        <button id="player-copy-btn"
-          class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
-          Copy Link
-        </button>
+        <div class="flex items-center gap-2">
+          <button id="player-copy-btn"
+            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
+            Copy Link
+          </button>
+          <button id="player-exit-btn"
+            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium text-gray-400 transition-all">
+            Exit
+          </button>
+        </div>
       </div>
     </div>
 
@@ -101,57 +107,84 @@
         <p id="player-leaderboard-empty" class="text-gray-700 text-sm">No scores yet</p>
       </div>
     </div>
+
+    <!-- Player: Finished -->
+    <div id="player-finished" class="hidden flex flex-col flex-1 max-w-xl mx-auto w-full px-4 py-10 gap-8">
+      <p class="text-4xl font-black text-center bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">Game Over</p>
+      <div id="player-podium" class="flex items-end justify-center gap-3 h-36"></div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Final Scores</p>
+        <div id="player-final-leaderboard" class="space-y-1"></div>
+        <p id="player-final-leaderboard-empty" class="text-gray-700 text-sm hidden">No scores yet</p>
+      </div>
+    </div>
   </div>
 
   <!-- Admin view -->
   <div id="view-admin" class="hidden min-h-screen flex flex-col">
-    <div class="sticky top-0 z-10 bg-gray-950/80 backdrop-blur border-b border-gray-900 px-4 py-3">
+
+    <!-- Header -->
+    <div class="sticky top-0 z-20 bg-gray-950/90 backdrop-blur border-b border-gray-900 px-4 py-3">
       <div class="max-w-2xl mx-auto flex items-center justify-between gap-3">
         <div>
           <h1 id="admin-party-name" class="text-lg font-black bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
-            Party Words
+            Instant Reaction
           </h1>
-          <span class="text-xs text-amber-400 font-medium">Admin View</span>
+          <span class="text-xs text-amber-400 font-medium">Admin</span>
         </div>
-        <div class="flex items-center gap-2 flex-wrap justify-end">
-          <button id="admin-phase-btn"
-            class="px-3 py-1.5 bg-violet-700 hover:bg-violet-600 active:scale-95 rounded-lg text-xs font-medium transition-all">
-          </button>
-          <button id="admin-submissions-btn"
-            class="px-3 py-1.5 active:scale-95 rounded-lg text-xs font-medium transition-all">
-          </button>
+        <div class="flex items-center gap-2">
           <button id="admin-copy-player-btn"
             class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
             Copy Player Link
           </button>
+          <button id="admin-exit-btn"
+            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium text-gray-400 transition-all">
+            Exit
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Admin: Lobby -->
-    <div id="admin-lobby">
-      <div class="max-w-2xl mx-auto w-full px-4 pt-6 pb-3">
-        <form id="admin-word-form" class="flex gap-3 mb-6">
-          <input id="admin-word-input" placeholder="Submit your own word…" autocomplete="off" spellcheck="false"
-            class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-lg text-white
-                   placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors" />
-          <button type="submit"
-            class="px-6 py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-2xl font-bold
-                   hover:opacity-90 active:scale-95 transition-all">→</button>
-        </form>
-      </div>
-      <div class="max-w-2xl mx-auto w-full px-4 pb-10">
-        <div id="admin-words-list" class="space-y-2"></div>
-        <div id="admin-empty-state" class="text-center py-20 text-gray-700">
-          <p class="text-3xl mb-3">⏳</p>
-          <p class="text-sm">Waiting for submissions…</p>
-        </div>
+    <!-- Tab nav -->
+    <div class="sticky top-[57px] z-10 bg-gray-950/90 backdrop-blur border-b border-gray-800">
+      <div class="max-w-2xl mx-auto flex">
+        <button id="tab-btn-words"
+          class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Words</button>
+        <button id="tab-btn-play"
+          class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Play</button>
+        <button id="tab-btn-results"
+          class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Results</button>
       </div>
     </div>
 
-    <!-- Admin: Game -->
-    <div id="admin-game" class="hidden max-w-2xl mx-auto w-full px-4 py-6 flex-1 flex flex-col">
+    <!-- Tab: Words -->
+    <div id="admin-tab-words" class="max-w-2xl mx-auto w-full px-4 pt-4 pb-10 flex flex-col gap-4">
+      <div id="phase-indicator-words"></div>
+      <button id="admin-submissions-btn"
+        class="self-start px-4 py-2 active:scale-95 rounded-lg text-xs font-medium transition-all">
+      </button>
+      <form id="admin-word-form" class="flex gap-3">
+        <input id="admin-word-input" placeholder="Submit your own word…" autocomplete="off" spellcheck="false"
+          class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-lg text-white
+                 placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors" />
+        <button type="submit"
+          class="px-6 py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-2xl font-bold
+                 hover:opacity-90 active:scale-95 transition-all">→</button>
+      </form>
+      <p id="admin-pool-count" class="hidden text-xs text-gray-500"></p>
+      <div id="admin-words-list" class="space-y-2"></div>
+      <div id="admin-empty-state" class="text-center py-20 text-gray-700">
+        <p class="text-3xl mb-3">⏳</p>
+        <p class="text-sm">Waiting for submissions…</p>
+      </div>
+    </div>
 
+    <!-- Tab: Play -->
+    <div id="admin-tab-play" class="hidden max-w-2xl mx-auto w-full px-4 py-6 flex-1 flex flex-col">
+
+      <div id="phase-indicator-play" class="mb-4"></div>
+
+      <!-- Play config -->
       <!-- Round setup -->
       <div id="admin-round-setup" class="hidden flex flex-col gap-4">
         <h2 class="text-lg font-bold">New Round</h2>
@@ -164,16 +197,17 @@
                    focus:outline-none focus:border-violet-500 transition-colors" />
           <span class="text-gray-500 text-sm">seconds</span>
         </div>
+        <div class="flex gap-3 items-center">
+          <input id="round-cap-input" type="number" value="10" min="1" placeholder="∞"
+            class="w-28 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm
+                   focus:outline-none focus:border-violet-500 transition-colors" />
+          <span class="text-gray-500 text-sm">word cap (blank = all)</span>
+        </div>
         <button id="start-round-btn"
           class="py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-xl font-bold text-lg
                  hover:opacity-90 active:scale-95 transition-all">
           Start Round
         </button>
-        <div class="mt-4">
-          <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Leaderboard</p>
-          <div id="admin-leaderboard" class="space-y-1"></div>
-          <p id="admin-leaderboard-empty" class="text-gray-700 text-sm">No scores yet</p>
-        </div>
       </div>
 
       <!-- Round active -->
@@ -181,8 +215,10 @@
         <div class="flex justify-between w-full items-center">
           <span id="admin-round-progress" class="text-gray-500 text-sm"></span>
           <span id="admin-round-timer" class="text-4xl font-black tabular-nums"></span>
+          <button id="btn-cancel-round" class="text-xs text-gray-600 hover:text-red-400 transition-colors">Cancel</button>
         </div>
-        <div id="admin-current-word" class="text-6xl font-black text-center py-8 tracking-tight leading-tight flex-1 flex items-center justify-center"></div>
+        <div id="admin-current-word"
+          class="text-6xl font-black text-center tracking-tight leading-tight flex-1 flex items-center justify-center"></div>
         <div class="flex gap-4 w-full pb-4">
           <button id="btn-correct"
             class="flex-1 py-6 bg-green-700 hover:bg-green-600 active:scale-95 rounded-2xl text-xl font-bold transition-all">
@@ -210,6 +246,22 @@
       </div>
 
     </div>
+
+    <!-- Tab: Results -->
+    <div id="admin-tab-results" class="hidden max-w-2xl mx-auto w-full px-4 py-6 flex flex-col gap-6">
+      <div id="phase-indicator-results"></div>
+      <div id="admin-podium" class="flex items-end justify-center gap-3 h-36"></div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Leaderboard</p>
+        <div id="admin-leaderboard" class="space-y-1"></div>
+        <p id="admin-leaderboard-empty" class="text-gray-700 text-sm">No scores yet</p>
+      </div>
+      <div id="admin-round-history-wrap" class="hidden">
+        <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Rounds</p>
+        <div id="admin-round-history" class="space-y-2"></div>
+      </div>
+    </div>
+
   </div>
 
   <script type="module">
@@ -234,17 +286,14 @@
       return Array.from(crypto.getRandomValues(new Uint8Array(10)))
         .map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 14);
     }
-
     function wordKey(text) {
       return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'word';
     }
-
     function getUserId() {
       let id = localStorage.getItem('party-user-id');
       if (!id) { id = generateId(); localStorage.setItem('party-user-id', id); }
       return id;
     }
-
     function parseHash() {
       const raw = location.hash.slice(1);
       if (!raw) return { sessionId: null, adminToken: null };
@@ -252,18 +301,15 @@
       if (slash === -1) return { sessionId: raw, adminToken: null };
       return { sessionId: raw.slice(0, slash), adminToken: raw.slice(slash + 1) };
     }
-
     function showOnly(id) {
       ['view-landing', 'view-player', 'view-admin'].forEach(v =>
         document.getElementById(v).classList.toggle('hidden', v !== id)
       );
     }
-
     function fmtTime(seconds) {
       const s = Math.max(0, Math.ceil(seconds));
       return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     }
-
     function shuffle(arr) {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
@@ -272,22 +318,51 @@
       }
       return a;
     }
-
     function buildWordPool(words) {
       return Object.entries(words)
         .filter(([, v]) => !v.flagged && (v.count > 0 || v.editedText))
         .map(([key]) => key);
     }
-
     function displayText(words, key) {
       const w = words[key];
       return w ? (w.editedText || w.text) : key;
+    }
+    function roundCorrectCount(round) {
+      return round.correctCount ?? Object.values(round.results || {}).filter(r => r.result === 'correct').length;
+    }
+
+    function renderPodium(data, podiumEl) {
+      podiumEl.innerHTML = '';
+      const entries = Object.entries(data || {}).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      if (!entries.length) return;
+      const order   = [1, 0, 2];
+      const medals  = ['🥇', '🥈', '🥉'];
+      const heights = ['h-36', 'h-24', 'h-20'];
+      const colors  = [
+        'bg-yellow-500/20 border-yellow-500/40',
+        'bg-gray-500/20 border-gray-500/40',
+        'bg-orange-700/20 border-orange-700/40',
+      ];
+      order.forEach(rank => {
+        if (!entries[rank]) return;
+        const [name, score] = entries[rank];
+        const col = document.createElement('div');
+        col.className = 'flex flex-col items-center gap-1 flex-1';
+        const block = document.createElement('div');
+        block.className = `w-full ${heights[rank]} ${colors[rank]} border rounded-xl flex flex-col items-center justify-center gap-1`;
+        block.innerHTML = `<span class="text-2xl">${medals[rank]}</span><span class="text-lg font-black tabular-nums">${score}</span>`;
+        const label = document.createElement('p');
+        label.className = 'text-xs font-semibold text-center text-gray-300 truncate w-full px-1';
+        label.textContent = name;
+        col.append(block, label);
+        podiumEl.appendChild(col);
+      });
     }
 
     function renderLeaderboard(data, listEl, emptyEl) {
       listEl.innerHTML = '';
       const entries = Object.entries(data || {}).sort((a, b) => b[1] - a[1]);
-      emptyEl.classList.toggle('hidden', entries.length > 0);
+      if (emptyEl) emptyEl.classList.toggle('hidden', entries.length > 0);
       entries.forEach(([name, score], i) => {
         const el = document.createElement('div');
         el.className = 'flex items-center gap-3 py-2 border-b border-gray-800/60 last:border-0';
@@ -308,39 +383,73 @@
       if (name) await set(ref(db, `sessions/${sessionId}/name`), name);
       location.hash = `${sessionId}/${adminToken}`;
     });
-
     document.getElementById('party-name-input').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('start-btn').click();
     });
-
     document.getElementById('join-btn').addEventListener('click', () => {
       const val = document.getElementById('join-input').value.trim();
       if (!val) return;
       try { const u = new URL(val); location.hash = u.hash.slice(1) || val; }
       catch { location.hash = val; }
     });
-
     document.getElementById('join-input').addEventListener('keydown', e => {
       if (e.key === 'Enter') document.getElementById('join-btn').click();
     });
 
     // ── Routing ───────────────────────────────────────────────
 
-    let currentView = null;
+    let currentView      = null;
+    let currentSessionId = null;
+    let viewUnsubs       = [];
+
+    function teardownView() {
+      viewUnsubs.forEach(fn => fn());
+      viewUnsubs = [];
+    }
+
+    // Wrap onValue so every subscription is tracked and torn down on navigation
+    function trackedOnValue(r, cb) {
+      const unsub = onValue(r, cb);
+      viewUnsubs.push(unsub);
+      return unsub;
+    }
+
+    // Wrap addEventListener so listeners are removed on navigation
+    function trackedListener(el, event, handler) {
+      el.addEventListener(event, handler);
+      viewUnsubs.push(() => el.removeEventListener(event, handler));
+    }
 
     async function route() {
       const { sessionId, adminToken } = parseHash();
-      if (!sessionId) { showOnly('view-landing'); currentView = 'landing'; return; }
+      if (!sessionId) {
+        teardownView();
+        showOnly('view-landing');
+        currentView = 'landing';
+        currentSessionId = null;
+        return;
+      }
       if (adminToken) {
         const snap = await get(ref(db, `sessions/${sessionId}/adminToken`));
         if (snap.val() === adminToken) {
-          if (currentView !== 'admin') { currentView = 'admin'; showOnly('view-admin'); initAdmin(sessionId); }
+          if (currentView !== 'admin' || currentSessionId !== sessionId) {
+            teardownView();
+            currentView = 'admin';
+            currentSessionId = sessionId;
+            showOnly('view-admin');
+            initAdmin(sessionId);
+          }
           return;
         }
       }
-      if (currentView !== 'player') { currentView = 'player'; showOnly('view-player'); initPlayer(sessionId); }
+      if (currentView !== 'player' || currentSessionId !== sessionId) {
+        teardownView();
+        currentView = 'player';
+        currentSessionId = sessionId;
+        showOnly('view-player');
+        initPlayer(sessionId);
+      }
     }
-
     window.addEventListener('hashchange', route);
 
     // ── Shared helpers ────────────────────────────────────────
@@ -380,13 +489,15 @@
     function initPlayer(sessionId) {
       const userId = getUserId();
 
-      onValue(ref(db, `sessions/${sessionId}/name`), snap => {
-        const name = snap.val() || 'Party Words';
+      trackedListener(document.getElementById('player-exit-btn'), 'click', () => { location.hash = ''; });
+
+      trackedOnValue(ref(db, `sessions/${sessionId}/name`), snap => {
+        const name = snap.val() || 'Instant Reaction';
         document.getElementById('player-party-name').textContent = name;
-        document.title = `${name} — Party Words`;
+        document.title = `${name} — Instant Reaction`;
       });
 
-      document.getElementById('player-copy-btn').addEventListener('click', async () => {
+      trackedListener(document.getElementById('player-copy-btn'), 'click', async () => {
         const btn = document.getElementById('player-copy-btn');
         await navigator.clipboard.writeText(`${location.origin}${location.pathname}#${sessionId}`);
         btn.textContent = 'Copied!';
@@ -394,13 +505,13 @@
       });
 
       const wordInput = document.getElementById('word-input');
-      onValue(ref(db, `sessions/${sessionId}/submissionsOpen`), snap => {
+      trackedOnValue(ref(db, `sessions/${sessionId}/submissionsOpen`), snap => {
         const open = snap.val() !== false;
         wordInput.disabled = !open;
         wordInput.placeholder = open ? 'Type a word…' : 'Submissions paused';
       });
 
-      document.getElementById('word-form').addEventListener('submit', async e => {
+      trackedListener(document.getElementById('word-form'), 'submit', async e => {
         e.preventDefault();
         const text = wordInput.value.trim();
         if (!text || wordInput.disabled) return;
@@ -409,7 +520,7 @@
         await submitWord(sessionId, userId, text);
       });
 
-      onValue(ref(db, `sessions/${sessionId}/userWords/${userId}`), snap => {
+      trackedOnValue(ref(db, `sessions/${sessionId}/userWords/${userId}`), snap => {
         const data = snap.val();
         const list  = document.getElementById('player-words-list');
         const empty = document.getElementById('player-empty-state');
@@ -434,40 +545,45 @@
           });
       });
 
-      onValue(ref(db, `sessions/${sessionId}/leaderboard`), snap => {
-        renderLeaderboard(snap.val(), document.getElementById('player-leaderboard'), document.getElementById('player-leaderboard-empty'));
+      trackedOnValue(ref(db, `sessions/${sessionId}/leaderboard`), snap => {
+        const data = snap.val();
+        renderLeaderboard(data, document.getElementById('player-leaderboard'), document.getElementById('player-leaderboard-empty'));
+        renderPodium(data, document.getElementById('player-podium'));
+        renderLeaderboard(data, document.getElementById('player-final-leaderboard'), document.getElementById('player-final-leaderboard-empty'));
+      });
+
+      trackedOnValue(ref(db, `sessions/${sessionId}/phase`), snap => {
+        const phase = snap.val() || 'lobby';
+        document.getElementById('player-lobby').classList.toggle('hidden', phase !== 'lobby');
+        document.getElementById('player-game').classList.toggle('hidden', phase !== 'game');
+        document.getElementById('player-finished').classList.toggle('hidden', phase !== 'finished');
       });
 
       let timerInterval = null;
-      let unsubRound = null;
-
-      onValue(ref(db, `sessions/${sessionId}/phase`), snap => {
-        const phase = snap.val() || 'lobby';
-        document.getElementById('player-lobby').classList.toggle('hidden', phase === 'game');
-        document.getElementById('player-game').classList.toggle('hidden', phase !== 'game');
+      let unsubRound    = null;
+      viewUnsubs.push(() => {
+        if (unsubRound) { unsubRound(); unsubRound = null; }
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
       });
 
-      onValue(ref(db, `sessions/${sessionId}/currentRound`), snap => {
+      trackedOnValue(ref(db, `sessions/${sessionId}/currentRound`), snap => {
         const roundId = snap.val();
         if (unsubRound) { unsubRound(); unsubRound = null; }
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-
         if (!roundId) {
           document.getElementById('player-word-display').textContent = '';
           document.getElementById('player-round-label').textContent = 'Waiting for round to start…';
           document.getElementById('player-timer-wrap').classList.add('hidden');
           return;
         }
-
         unsubRound = onValue(ref(db, `sessions/${sessionId}/rounds/${roundId}`), async snap => {
           const round = snap.val();
           if (!round) return;
           const wordQueue = Object.values(round.wordQueue || {});
-
           if (round.status === 'active') {
-            const key  = wordQueue[round.currentIndex];
-            const ws   = await get(ref(db, `sessions/${sessionId}/words/${key}`));
-            const w    = ws.val();
+            const key = wordQueue[round.currentIndex];
+            const ws  = await get(ref(db, `sessions/${sessionId}/words/${key}`));
+            const w   = ws.val();
             document.getElementById('player-word-display').textContent = w ? (w.editedText || w.text) : key;
             document.getElementById('player-round-label').textContent = round.name ? `${round.name}'s turn` : '';
             document.getElementById('player-timer-wrap').classList.remove('hidden');
@@ -491,93 +607,160 @@
     // ── Admin ─────────────────────────────────────────────────
 
     function initAdmin(sessionId) {
-      const userId = getUserId();
+      const userId   = getUserId();
+      const phaseRef = ref(db, `sessions/${sessionId}/phase`);
+      const subsRef  = ref(db, `sessions/${sessionId}/submissionsOpen`);
 
-      onValue(ref(db, `sessions/${sessionId}/name`), snap => {
-        const name = snap.val() || 'Party Words';
+      trackedOnValue(ref(db, `sessions/${sessionId}/name`), snap => {
+        const name = snap.val() || 'Instant Reaction';
         document.getElementById('admin-party-name').textContent = name;
-        document.title = `${name} [Admin] — Party Words`;
+        document.title = `${name} [Admin] — Instant Reaction`;
       });
 
-      document.getElementById('admin-copy-player-btn').addEventListener('click', async () => {
+      trackedListener(document.getElementById('admin-copy-player-btn'), 'click', async () => {
         const btn = document.getElementById('admin-copy-player-btn');
         await navigator.clipboard.writeText(`${location.origin}${location.pathname}#${sessionId}`);
         btn.textContent = 'Copied!';
         setTimeout(() => btn.textContent = 'Copy Player Link', 2000);
       });
+      trackedListener(document.getElementById('admin-exit-btn'), 'click', () => { location.hash = ''; });
 
       // Submissions toggle
       const subsBtn = document.getElementById('admin-submissions-btn');
-      const subsRef  = ref(db, `sessions/${sessionId}/submissionsOpen`);
-      let submissionsOpen = true;
-
-      onValue(subsRef, snap => {
-        submissionsOpen = snap.val() !== false;
-        subsBtn.textContent = submissionsOpen ? 'Pause Submissions' : 'Resume Submissions';
-        subsBtn.className = `px-3 py-1.5 active:scale-95 rounded-lg text-xs font-medium transition-all ${
-          submissionsOpen ? 'bg-red-900/60 hover:bg-red-900 text-red-300' : 'bg-green-900/60 hover:bg-green-900 text-green-300'
+      trackedOnValue(subsRef, snap => {
+        const open = snap.val() !== false;
+        subsBtn.textContent = open ? 'Pause Submissions' : 'Resume Submissions';
+        subsBtn.className = `self-start px-4 py-2 active:scale-95 rounded-lg text-xs font-medium transition-all ${
+          open ? 'bg-red-900/60 hover:bg-red-900 text-red-300' : 'bg-green-900/60 hover:bg-green-900 text-green-300'
         }`;
-        // Only show Start Game when submissions are paused and in lobby
-        const phase = document.getElementById('admin-phase-btn').dataset.phase || 'lobby';
-        document.getElementById('admin-phase-btn').classList.toggle('hidden', submissionsOpen || phase === 'game');
       });
-      subsBtn.addEventListener('click', async () => {
+      trackedListener(subsBtn, 'click', async () => {
         const s = await get(subsRef);
         await set(subsRef, s.val() !== false ? false : true);
       });
 
-      // Phase toggle
-      const phaseBtn = document.getElementById('admin-phase-btn');
-      const phaseRef  = ref(db, `sessions/${sessionId}/phase`);
-      onValue(phaseRef, snap => {
-        const phase = snap.val() || 'lobby';
-        phaseBtn.dataset.phase = phase;
-        phaseBtn.textContent = phase === 'lobby' ? 'Start Game' : 'Back to Lobby';
-        phaseBtn.classList.toggle('hidden', phase === 'lobby' && submissionsOpen);
-        document.getElementById('admin-lobby').classList.toggle('hidden', phase === 'game');
-        document.getElementById('admin-game').classList.toggle('hidden', phase !== 'game');
-        subsBtn.classList.toggle('hidden', phase === 'game');
+      // Tab navigation
+      const tabPhaseMap  = { words: 'lobby', play: 'game', results: 'finished' };
+      const phaseTabMap  = { lobby: 'words', game: 'play', finished: 'results' };
+      const phaseLabels  = { lobby: 'Lobby', game: 'Game', finished: 'Results' };
+
+      function setTabStyles(activeTab) {
+        ['words', 'play', 'results'].forEach(t => {
+          document.getElementById(`tab-btn-${t}`).className =
+            `flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${
+              t === activeTab
+                ? 'border-violet-500 text-violet-400'
+                : 'border-transparent text-gray-500 hover:text-gray-300'
+            }`;
+        });
+      }
+
+      function switchTab(tab) {
+        ['words', 'play', 'results'].forEach(t =>
+          document.getElementById(`admin-tab-${t}`).classList.toggle('hidden', t !== tab)
+        );
+        setTabStyles(tab);
+        if (tab === 'play' && !activeRoundId) showPlaySection('setup');
+      }
+
+      function renderPhaseIndicators(currentPhase) {
+        ['words', 'play', 'results'].forEach(tab => {
+          const el = document.getElementById(`phase-indicator-${tab}`);
+          const tabPhase = tabPhaseMap[tab];
+          const isActive = currentPhase === tabPhase;
+          el.innerHTML = '';
+          if (isActive) {
+            el.className = 'mb-1';
+            const pill = document.createElement('span');
+            pill.className = 'text-xs text-green-400 font-medium';
+            pill.textContent = 'Players are here ✓';
+            el.appendChild(pill);
+          } else {
+            el.className = 'flex items-center justify-between mb-1';
+            const label = document.createElement('span');
+            label.className = 'text-xs text-gray-500';
+            label.textContent = `Players see: ${phaseLabels[currentPhase] || 'Lobby'}`;
+            const btn = document.createElement('button');
+            btn.className = 'text-xs bg-violet-900/50 hover:bg-violet-700 text-violet-300 px-3 py-1 rounded-lg transition-colors font-medium';
+            btn.textContent = 'Bring players here →';
+            btn.addEventListener('click', async () => {
+              if (tab === 'play') {
+                const s = await get(subsRef);
+                if (s.val() !== false) await set(subsRef, false);
+              }
+              await set(phaseRef, tabPhase);
+            });
+            el.append(label, btn);
+          }
+        });
+      }
+
+      ['words', 'play', 'results'].forEach(t =>
+        trackedListener(document.getElementById(`tab-btn-${t}`), 'click', () => switchTab(t))
+      );
+
+      // Track phase for indicators (does not drive tab switching)
+      trackedOnValue(phaseRef, snap => renderPhaseIndicators(snap.val() || 'lobby'));
+
+      // Set initial tab from Firebase phase
+      get(phaseRef).then(snap => {
+        const tab = phaseTabMap[snap.val()] || 'words';
+        switchTab(tab);
       });
-      phaseBtn.addEventListener('click', async () => {
-        const s = await get(phaseRef);
-        const next = (s.val() || 'lobby') === 'lobby' ? 'game' : 'lobby';
-        await set(phaseRef, next);
-        if (next === 'game') await remove(ref(db, `sessions/${sessionId}/currentRound`));
+
+      // Pool state
+      let wordsData  = {};
+      let roundsData = {};
+
+      function renderPoolCount() {
+        const countEl  = document.getElementById('admin-pool-count');
+        const pool     = buildWordPool(wordsData);
+        countEl.textContent = `${pool.length} word${pool.length === 1 ? '' : 's'} in pool`;
+        countEl.classList.toggle('hidden', pool.length === 0);
+      }
+
+      // Words list
+      trackedOnValue(ref(db, `sessions/${sessionId}/words`), snap => {
+        wordsData = snap.val() || {};
+        renderPoolCount();
+        const list  = document.getElementById('admin-words-list');
+        const empty = document.getElementById('admin-empty-state');
+        list.innerHTML = '';
+        if (!Object.keys(wordsData).length) { empty.classList.remove('hidden'); return; }
+        Object.entries(wordsData)
+          .map(([key, v]) => ({ key, ...v }))
+          .sort((a, b) => a.text.localeCompare(b.text))
+          .forEach(word => list.appendChild(makeAdminRow(word, sessionId)));
+        empty.classList.add('hidden');
       });
 
       // Admin word submission
-      document.getElementById('admin-word-form').addEventListener('submit', async e => {
+      trackedListener(document.getElementById('admin-word-form'), 'submit', async e => {
         e.preventDefault();
         const input = document.getElementById('admin-word-input');
         const text  = input.value.trim();
         if (!text) return;
-        input.value = '';
-        input.focus();
+        input.value = ''; input.focus();
         await submitWord(sessionId, userId, text);
       });
 
-      // Words list
-      onValue(ref(db, `sessions/${sessionId}/words`), snap => {
+      // Leaderboard + podium (Results tab)
+      trackedOnValue(ref(db, `sessions/${sessionId}/leaderboard`), snap => {
         const data = snap.val();
-        const list  = document.getElementById('admin-words-list');
-        const empty = document.getElementById('admin-empty-state');
-        list.innerHTML = '';
-        if (!data) { empty.classList.remove('hidden'); return; }
-        const words = Object.entries(data)
-          .map(([key, v]) => ({ key, ...v }))
-          .sort((a, b) => a.text.localeCompare(b.text));
-        empty.classList.add('hidden');
-        words.forEach(word => list.appendChild(makeAdminRow(word, sessionId)));
+        renderPodium(data, document.getElementById('admin-podium'));
+        renderLeaderboard(data, document.getElementById('admin-leaderboard'), document.getElementById('admin-leaderboard-empty'));
       });
 
-      // Leaderboard
-      onValue(ref(db, `sessions/${sessionId}/leaderboard`), snap => {
-        renderLeaderboard(snap.val(), document.getElementById('admin-leaderboard'), document.getElementById('admin-leaderboard-empty'));
+      // Round history
+      trackedOnValue(ref(db, `sessions/${sessionId}/rounds`), snap => {
+        roundsData = snap.val() || {};
+        renderPoolCount();
+        renderRoundHistory(roundsData, sessionId);
       });
 
-      // ── Game flow ─────────────────────────────────────────
+      // ── Play tab ──────────────────────────────────────────
 
-      function showGameSection(name) {
+      function showPlaySection(name) {
         ['admin-round-setup', 'admin-round-active', 'admin-round-review'].forEach(id =>
           document.getElementById(id).classList.toggle('hidden', id !== `admin-round-${name}`)
         );
@@ -586,12 +769,16 @@
       let timerInterval = null;
       let unsubRound    = null;
       let activeRoundId = null;
+      viewUnsubs.push(() => {
+        if (unsubRound) { unsubRound(); unsubRound = null; }
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      });
 
-      onValue(ref(db, `sessions/${sessionId}/currentRound`), snap => {
+      trackedOnValue(ref(db, `sessions/${sessionId}/currentRound`), snap => {
         activeRoundId = snap.val();
         if (unsubRound) { unsubRound(); unsubRound = null; }
         if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-        if (!activeRoundId) { showGameSection('setup'); return; }
+        if (!activeRoundId) { showPlaySection('setup'); return; }
 
         unsubRound = onValue(ref(db, `sessions/${sessionId}/rounds/${activeRoundId}`), async snap => {
           const round = snap.val();
@@ -599,14 +786,13 @@
           const wordQueue = Object.values(round.wordQueue || {});
 
           if (round.status === 'active') {
-            showGameSection('active');
+            showPlaySection('active');
             const wordsSnap = await get(ref(db, `sessions/${sessionId}/words`));
             const words     = wordsSnap.val() || {};
             const key = wordQueue[round.currentIndex];
             document.getElementById('admin-current-word').textContent = displayText(words, key);
             document.getElementById('admin-round-progress').textContent =
               `${round.currentIndex + 1} / ${wordQueue.length}`;
-
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(async () => {
               const rem = round.timeLimit - (Date.now() - round.startedAt) / 1000;
@@ -614,56 +800,89 @@
               el.textContent = fmtTime(rem);
               el.className = `text-4xl font-black tabular-nums ${rem <= 10 ? 'text-red-400' : ''}`;
               if (rem <= 0) {
-                clearInterval(timerInterval);
-                timerInterval = null;
+                clearInterval(timerInterval); timerInterval = null;
                 await endRound(sessionId, activeRoundId);
               }
             }, 250);
 
           } else if (round.status === 'review') {
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            showGameSection('review');
+            showPlaySection('review');
             const wordsSnap = await get(ref(db, `sessions/${sessionId}/words`));
             renderRoundReview(round, wordsSnap.val() || {}, sessionId, activeRoundId);
           }
         });
       });
 
-      // Start round
-      document.getElementById('start-round-btn').addEventListener('click', async () => {
-        const name      = document.getElementById('round-name-input').value.trim();
+      const roundNameInput = document.getElementById('round-name-input');
+      const roundNameError = document.createElement('p');
+      roundNameError.className = 'text-xs text-red-400 hidden';
+      roundNameInput.insertAdjacentElement('afterend', roundNameError);
+
+      trackedListener(roundNameInput, 'input', () => roundNameError.classList.add('hidden'));
+
+      trackedListener(document.getElementById('start-round-btn'), 'click', async () => {
+        const name      = roundNameInput.value.trim();
         const timeLimit = parseInt(document.getElementById('round-time-input').value) || 60;
-        if (!name) { document.getElementById('round-name-input').focus(); return; }
+        if (!name) { roundNameInput.focus(); return; }
+        const alreadyUsed = Object.values(roundsData).some(r => r.name === name);
+        if (alreadyUsed) {
+          roundNameError.textContent = `"${name}" has already played this session`;
+          roundNameError.classList.remove('hidden');
+          roundNameInput.focus();
+          return;
+        }
+        const capVal = parseInt(document.getElementById('round-cap-input').value);
+        const cap    = (capVal && capVal > 0) ? capVal : null;
 
-        const wordsSnap = await get(ref(db, `sessions/${sessionId}/words`));
-        const pool = shuffle(buildWordPool(wordsSnap.val() || {}));
-        if (!pool.length) { alert('No words in the pool!'); return; }
+        const pool = buildWordPool(wordsData);
+        if (!pool.length) { alert('No words in pool!'); return; }
 
+        // Global round queue: sample without replacement, reshuffle when exhausted
+        const globalQueueRef = ref(db, `sessions/${sessionId}/globalQueue`);
+        const globalPosRef   = ref(db, `sessions/${sessionId}/globalQueuePos`);
+        const [qSnap, pSnap] = await Promise.all([get(globalQueueRef), get(globalPosRef)]);
+        const queue     = qSnap.val() ? Object.values(qSnap.val()).filter(k => pool.includes(k)) : [];
+        const pos       = pSnap.val() ?? 0;
+        const remaining = queue.slice(pos);
+
+        let finalPool;
+        if (!cap) {
+          // No cap: full fresh shuffle every round
+          finalPool = shuffle(pool);
+          await set(globalQueueRef, finalPool);
+          await set(globalPosRef, finalPool.length);
+        } else if (remaining.length >= cap) {
+          // Enough left in current cycle
+          finalPool = remaining.slice(0, cap);
+          await set(globalPosRef, pos + cap);
+        } else {
+          // Not enough left — start a fresh cycle
+          const newCycle = shuffle(pool);
+          finalPool = newCycle.slice(0, Math.min(cap, newCycle.length));
+          await set(globalQueueRef, newCycle);
+          await set(globalPosRef, finalPool.length);
+        }
         const roundId = generateId();
         await set(ref(db, `sessions/${sessionId}/rounds/${roundId}`), {
-          name, timeLimit, wordQueue: pool, currentIndex: 0,
+          name, timeLimit, wordQueue: finalPool, currentIndex: 0,
           startedAt: Date.now(), status: 'active',
         });
         await set(ref(db, `sessions/${sessionId}/currentRound`), roundId);
       });
 
-      // Correct / Wrong
       async function handleMark(result) {
         if (!activeRoundId) return;
         const snap  = await get(ref(db, `sessions/${sessionId}/rounds/${activeRoundId}`));
         const round = snap.val();
         if (!round || round.status !== 'active') return;
-        const wordQueue  = Object.values(round.wordQueue || {});
+        const wordQueue = Object.values(round.wordQueue || {});
         const key = wordQueue[round.currentIndex];
-
         await set(ref(db, `sessions/${sessionId}/rounds/${activeRoundId}/results/${key}`),
           { result, order: round.currentIndex });
-
         if (result === 'correct') {
-          await runTransaction(ref(db, `sessions/${sessionId}/leaderboard/${round.name}`),
-            n => (n || 0) + 1);
+          await runTransaction(ref(db, `sessions/${sessionId}/leaderboard/${round.name}`), n => (n || 0) + 1);
         }
-
         const next = round.currentIndex + 1;
         if (next >= wordQueue.length) {
           await endRound(sessionId, activeRoundId);
@@ -672,16 +891,84 @@
         }
       }
 
-      document.getElementById('btn-correct').addEventListener('click', () => handleMark('correct'));
-      document.getElementById('btn-wrong').addEventListener('click', () => handleMark('wrong'));
+      trackedListener(document.getElementById('btn-correct'), 'click', () => handleMark('correct'));
+      trackedListener(document.getElementById('btn-wrong'), 'click', () => handleMark('wrong'));
 
-      // Submit round (go to next)
-      document.getElementById('submit-round-btn').addEventListener('click', async () => {
+      trackedListener(document.getElementById('btn-cancel-round'), 'click', async () => {
+        if (!activeRoundId) return;
+        const snap  = await get(ref(db, `sessions/${sessionId}/rounds/${activeRoundId}`));
+        const round = snap.val();
+        if (!round) return;
+        const correctCount = Object.values(round.results || {}).filter(r => r.result === 'correct').length;
+        if (correctCount > 0) {
+          await runTransaction(ref(db, `sessions/${sessionId}/leaderboard/${round.name}`),
+            n => { const v = (n || 0) - correctCount; return v <= 0 ? null : v; });
+        }
+        await remove(ref(db, `sessions/${sessionId}/rounds/${activeRoundId}`));
+        await remove(ref(db, `sessions/${sessionId}/currentRound`));
+      });
+
+      trackedListener(document.getElementById('submit-round-btn'), 'click', async () => {
+        if (!activeRoundId) return;
+        const snap  = await get(ref(db, `sessions/${sessionId}/rounds/${activeRoundId}`));
+        const round = snap.val();
+        if (round) {
+          const correct = roundCorrectCount(round);
+          await set(ref(db, `sessions/${sessionId}/rounds/${activeRoundId}/correctCount`), correct);
+        }
         await remove(ref(db, `sessions/${sessionId}/currentRound`));
       });
     }
 
-    // ── Admin row (lobby) ─────────────────────────────────────
+    // ── Round history ─────────────────────────────────────────
+
+    function renderRoundHistory(rounds, sessionId) {
+      const completed = Object.entries(rounds || {})
+        .map(([id, r]) => ({ id, ...r }))
+        .filter(r => r.status === 'review' || r.correctCount !== undefined)
+        .sort((a, b) => (a.startedAt || 0) - (b.startedAt || 0));
+
+      const wrap = document.getElementById('admin-round-history-wrap');
+      const list = document.getElementById('admin-round-history');
+      wrap.classList.toggle('hidden', completed.length === 0);
+      list.innerHTML = '';
+
+      completed.forEach(round => {
+        const count = roundCorrectCount(round);
+        const el = document.createElement('div');
+        el.className = `flex items-center gap-3 rounded-xl px-4 py-3 border transition-opacity ${
+          round.hidden ? 'bg-gray-900/40 border-gray-800/30 opacity-40' : 'bg-gray-900 border-gray-800/60'
+        }`;
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'flex-1 text-sm font-semibold';
+        nameEl.textContent = round.name || 'Unnamed';
+
+        const scoreEl = document.createElement('span');
+        scoreEl.className = 'text-sm text-violet-300 font-bold tabular-nums';
+        scoreEl.textContent = `${count} correct`;
+
+        const hideBtn = document.createElement('button');
+        hideBtn.className = 'text-xs text-gray-500 hover:text-white transition-colors px-2';
+        hideBtn.textContent = round.hidden ? 'Show' : 'Hide';
+        hideBtn.addEventListener('click', async () => {
+          if (round.hidden) {
+            await remove(ref(db, `sessions/${sessionId}/rounds/${round.id}/hidden`));
+            if (count > 0) await runTransaction(
+              ref(db, `sessions/${sessionId}/leaderboard/${round.name}`), n => (n || 0) + count);
+          } else {
+            await set(ref(db, `sessions/${sessionId}/rounds/${round.id}/hidden`), true);
+            if (count > 0) await runTransaction(
+              ref(db, `sessions/${sessionId}/leaderboard/${round.name}`), n => { const v = (n || 0) - count; return v <= 0 ? null : v; });
+          }
+        });
+
+        el.append(nameEl, scoreEl, hideBtn);
+        list.appendChild(el);
+      });
+    }
+
+    // ── Admin word row ────────────────────────────────────────
 
     function makeAdminRow(word, sessionId) {
       const el = document.createElement('div');
@@ -707,7 +994,18 @@
 
       const hideBtn = document.createElement('button');
       hideBtn.className = 'text-xs px-2 transition-colors text-gray-500 hover:text-white';
-      hideBtn.textContent = word.flagged ? 'Unhide' : 'Hide';
+
+      if (word.flagged) {
+        hideBtn.textContent = 'Unhide';
+        hideBtn.addEventListener('click', () =>
+          remove(ref(db, `sessions/${sessionId}/words/${word.key}/flagged`))
+        );
+      } else {
+        hideBtn.textContent = 'Hide';
+        hideBtn.addEventListener('click', () =>
+          set(ref(db, `sessions/${sessionId}/words/${word.key}/flagged`), true)
+        );
+      }
 
       el.append(countBadge, textSpan, editBtn, hideBtn);
 
@@ -716,10 +1014,10 @@
         input.value = word.editedText || word.text;
         input.className = 'flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-violet-500';
         const saveBtn   = document.createElement('button');
-        saveBtn.className = 'text-xs text-violet-400 hover:text-violet-300 px-2';
+        saveBtn.className   = 'text-xs text-violet-400 hover:text-violet-300 px-2';
         saveBtn.textContent = 'Save';
         const cancelBtn = document.createElement('button');
-        cancelBtn.className = 'text-xs text-gray-500 hover:text-gray-300 px-2';
+        cancelBtn.className   = 'text-xs text-gray-500 hover:text-gray-300 px-2';
         cancelBtn.textContent = 'Cancel';
         el.innerHTML = '';
         el.append(countBadge, input, saveBtn, cancelBtn);
@@ -734,21 +1032,15 @@
         input.addEventListener('keydown', e => { if (e.key === 'Enter') doSave(); if (e.key === 'Escape') cancelBtn.click(); });
       });
 
-      hideBtn.addEventListener('click', () => {
-        if (word.flagged) remove(ref(db, `sessions/${sessionId}/words/${word.key}/flagged`));
-        else set(ref(db, `sessions/${sessionId}/words/${word.key}/flagged`), true);
-      });
-
       return el;
     }
 
     // ── Round review ──────────────────────────────────────────
 
     function renderRoundReview(round, words, sessionId, roundId) {
-      const wordQueue = Object.values(round.wordQueue || {});
-      const results   = round.results || {};
-      const list      = document.getElementById('admin-review-list');
-      list.innerHTML  = '';
+      const results = round.results || {};
+      const list    = document.getElementById('admin-review-list');
+      list.innerHTML = '';
 
       const updateSubtitle = () => {
         const correct = Object.values(results).filter(r => r.result === 'correct').length;
@@ -774,7 +1066,6 @@
             { value: 'correct', label: '✓', activeClass: 'bg-green-700 text-white' },
             { value: 'wrong',   label: '✗', activeClass: 'bg-red-800 text-white' },
           ];
-
           const btns = options.map(opt => {
             const btn = document.createElement('button');
             btn.textContent = opt.label;
@@ -795,13 +1086,12 @@
               const delta = (opt.value === 'correct' ? 1 : 0) - (oldResult === 'correct' ? 1 : 0);
               if (delta !== 0) {
                 await runTransaction(ref(db, `sessions/${sessionId}/leaderboard/${round.name}`),
-                  n => Math.max(0, (n || 0) + delta));
+                  n => { const v = (n || 0) + delta; return v <= 0 ? null : v; });
               }
               updateSubtitle();
             });
             return btn;
           });
-
           seg.append(...btns);
           el.append(textEl, seg);
           list.appendChild(el);
