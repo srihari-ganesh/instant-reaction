@@ -367,12 +367,11 @@
       if (!round || round.status !== 'active') return;
       const wordQueue = Object.values(round.wordQueue || {});
       const results   = round.results || {};
-      const updates   = {};
-      for (let i = round.currentIndex; i < wordQueue.length; i++) {
-        const k = wordQueue[i];
-        if (!results[k]) updates[`results/${k}`] = { result: 'timeout', order: i };
+      const i = round.currentIndex;
+      if (i < wordQueue.length && !results[wordQueue[i]]) {
+        await set(ref(db, `sessions/${sessionId}/rounds/${roundId}/results/${wordQueue[i]}`),
+          { result: 'wrong', order: i });
       }
-      if (Object.keys(updates).length) await update(ref(db, `sessions/${sessionId}/rounds/${roundId}`), updates);
       await set(ref(db, `sessions/${sessionId}/rounds/${roundId}/status`), 'review');
     }
 
@@ -757,8 +756,8 @@
       };
       updateSubtitle();
 
-      wordQueue
-        .map((key, i) => ({ key, result: results[key]?.result || 'timeout', order: results[key]?.order ?? i }))
+      Object.entries(results)
+        .map(([key, v]) => ({ key, result: v.result, order: v.order }))
         .sort((a, b) => a.order - b.order)
         .forEach(item => {
           const el = document.createElement('div');
@@ -768,34 +767,43 @@
           textEl.className = 'flex-1 text-sm font-semibold';
           textEl.textContent = displayText(words, item.key);
 
-          const badge = document.createElement('button');
-          const applyStyle = r => {
-            badge.textContent = r === 'correct' ? '✓ Correct' : r === 'wrong' ? '✗ Wrong' : '⏱ Timeout';
-            badge.className = `text-xs px-3 py-1 rounded-full font-medium transition-all cursor-pointer ${
-              r === 'correct' ? 'bg-green-900/60 text-green-300 hover:bg-green-900' :
-              r === 'wrong'   ? 'bg-red-900/60 text-red-300 hover:bg-red-900' :
-                                'bg-gray-800 text-gray-400 hover:bg-gray-700'
-            }`;
-          };
-          applyStyle(item.result);
+          const seg = document.createElement('div');
+          seg.className = 'flex rounded-lg overflow-hidden border border-gray-700 shrink-0';
 
-          badge.addEventListener('click', async () => {
-            const cycle   = { correct: 'wrong', wrong: 'timeout', timeout: 'correct' };
-            const oldResult = item.result;
-            const newResult = cycle[oldResult];
-            item.result = newResult;
-            applyStyle(newResult);
-            results[item.key] = { ...results[item.key], result: newResult };
-            await set(ref(db, `sessions/${sessionId}/rounds/${roundId}/results/${item.key}/result`), newResult);
-            const delta = (newResult === 'correct' ? 1 : 0) - (oldResult === 'correct' ? 1 : 0);
-            if (delta !== 0) {
-              await runTransaction(ref(db, `sessions/${sessionId}/leaderboard/${round.name}`),
-                n => Math.max(0, (n || 0) + delta));
-            }
-            updateSubtitle();
+          const options = [
+            { value: 'correct', label: '✓', activeClass: 'bg-green-700 text-white' },
+            { value: 'wrong',   label: '✗', activeClass: 'bg-red-800 text-white' },
+          ];
+
+          const btns = options.map(opt => {
+            const btn = document.createElement('button');
+            btn.textContent = opt.label;
+            btn.className = `px-3 py-1.5 text-sm font-bold transition-colors ${
+              item.result === opt.value ? opt.activeClass : 'bg-gray-900 text-gray-500 hover:text-gray-300'
+            }`;
+            btn.addEventListener('click', async () => {
+              if (item.result === opt.value) return;
+              const oldResult = item.result;
+              item.result = opt.value;
+              btns.forEach((b, i) => {
+                b.className = `px-3 py-1.5 text-sm font-bold transition-colors ${
+                  item.result === options[i].value ? options[i].activeClass : 'bg-gray-900 text-gray-500 hover:text-gray-300'
+                }`;
+              });
+              results[item.key] = { ...results[item.key], result: opt.value };
+              await set(ref(db, `sessions/${sessionId}/rounds/${roundId}/results/${item.key}/result`), opt.value);
+              const delta = (opt.value === 'correct' ? 1 : 0) - (oldResult === 'correct' ? 1 : 0);
+              if (delta !== 0) {
+                await runTransaction(ref(db, `sessions/${sessionId}/leaderboard/${round.name}`),
+                  n => Math.max(0, (n || 0) + delta));
+              }
+              updateSubtitle();
+            });
+            return btn;
           });
 
-          el.append(textEl, badge);
+          seg.append(...btns);
+          el.append(textEl, seg);
           list.appendChild(el);
         });
     }
