@@ -149,9 +149,9 @@
     <div class="sticky top-[57px] z-10 bg-gray-950/90 backdrop-blur border-b border-gray-800">
       <div class="max-w-2xl mx-auto flex">
         <button id="tab-btn-words"
-          class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Words</button>
+          class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Word Submission</button>
         <button id="tab-btn-play"
-          class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Play</button>
+          class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Game</button>
         <button id="tab-btn-results"
           class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Results</button>
       </div>
@@ -642,7 +642,8 @@
       // Tab navigation
       const tabPhaseMap  = { words: 'lobby', play: 'game', results: 'finished' };
       const phaseTabMap  = { lobby: 'words', game: 'play', finished: 'results' };
-      const phaseLabels  = { lobby: 'Lobby', game: 'Game', finished: 'Results' };
+      const phaseLabels  = { lobby: 'Word Submission', game: 'Game', finished: 'Results' };
+      const startLabels  = { words: 'Start Word Submission', play: 'Start Game', results: 'Show Results' };
 
       function setTabStyles(activeTab) {
         ['words', 'play', 'results'].forEach(t => {
@@ -673,16 +674,16 @@
             el.className = 'mb-1';
             const pill = document.createElement('span');
             pill.className = 'text-xs text-green-400 font-medium';
-            pill.textContent = 'Players are here ✓';
+            pill.textContent = `Players see: ${phaseLabels[tabPhase]} ✓`;
             el.appendChild(pill);
           } else {
             el.className = 'flex items-center justify-between mb-1';
             const label = document.createElement('span');
             label.className = 'text-xs text-gray-500';
-            label.textContent = `Players see: ${phaseLabels[currentPhase] || 'Lobby'}`;
+            label.textContent = `Players see: ${phaseLabels[currentPhase] || 'Word Submission'}`;
             const btn = document.createElement('button');
             btn.className = 'text-xs bg-violet-900/50 hover:bg-violet-700 text-violet-300 px-3 py-1 rounded-lg transition-colors font-medium';
-            btn.textContent = 'Bring players here →';
+            btn.textContent = startLabels[tab];
             btn.addEventListener('click', async () => {
               if (tab === 'play') {
                 const s = await get(subsRef);
