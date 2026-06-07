@@ -6,6 +6,51 @@
   <title>Instant Reaction</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* ── Theme ──────────────────────────────────────────────
+       The entire color scheme lives in these CSS custom
+       properties. Values are space-separated RGB ("R G B") so
+       Tailwind opacity modifiers (e.g. bg-ink-950/80) keep
+       working. Edit here to try out a new color scheme. */
+    :root {
+      /* Brand gradient start (emerald) — pairs with accent-500/600 as the end */
+      --brand: 52 211 153;
+
+      /* Accent (blue): buttons, highlights, active states */
+      --accent-300: 147 197 253;
+      --accent-400: 96 165 250;
+      --accent-500: 59 130 246;
+      --accent-600: 37 99 235;
+      --accent-700: 29 78 216;
+      --accent-900: 30 58 138;
+
+      /* Ink (neutral gray): page bg, surfaces, borders, text */
+      --ink-300: 209 213 219;
+      --ink-400: 156 163 175;
+      --ink-500: 107 114 128;
+      --ink-600: 75 85 99;
+      --ink-700: 55 65 81;
+      --ink-800: 31 41 55;
+      --ink-900: 17 24 39;
+      --ink-950: 3 7 18;
+
+      /* Status colors */
+      --success-300: 134 239 172;
+      --success-400: 74 222 128;
+      --success-600: 22 163 74;
+      --success-700: 21 128 61;
+      --success-900: 20 83 45;
+      --danger-300: 252 165 165;
+      --danger-400: 248 113 113;
+      --danger-800: 153 27 27;
+      --danger-900: 127 29 29;
+      --warning: 251 191 36;
+
+      /* Podium medals */
+      --medal-gold: 234 179 8;
+      --medal-silver: 107 114 128;
+      --medal-bronze: 194 65 12;
+    }
+
     @keyframes slide-in {
       from { opacity: 0; transform: translateY(-10px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -14,36 +59,57 @@
     body { font-family: 'Inter', system-ui, sans-serif; }
     button { touch-action: manipulation; }
   </style>
+  <script>
+    // Map the CSS custom properties above to Tailwind color names.
+    // <alpha-value> lets Tailwind opacity modifiers (/40, /60…) work.
+    const v = name => `rgb(var(--${name}) / <alpha-value>)`;
+    const scale = (name, shades) =>
+      Object.fromEntries(shades.map(s => [s, v(`${name}-${s}`)]));
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand:   v('brand'),
+            accent:  scale('accent',  [300, 400, 500, 600, 700, 900]),
+            ink:     scale('ink',     [300, 400, 500, 600, 700, 800, 900, 950]),
+            success: scale('success', [300, 400, 600, 700, 900]),
+            danger:  scale('danger',  [300, 400, 800, 900]),
+            warning: v('warning'),
+            medal:   { gold: v('medal-gold'), silver: v('medal-silver'), bronze: v('medal-bronze') },
+          },
+        },
+      },
+    };
+  </script>
 </head>
-<body class="bg-gray-950 text-white min-h-screen">
+<body class="bg-ink-950 text-white min-h-screen">
 
   <!-- Landing -->
   <div id="view-landing" class="flex flex-col items-center justify-center min-h-screen px-4">
     <div class="text-center max-w-sm w-full">
       <div class="text-5xl mb-4">🎉</div>
-      <h1 class="text-5xl font-black mb-2 bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
+      <h1 class="text-5xl font-black mb-6 bg-gradient-to-r from-brand to-accent-500 bg-clip-text text-transparent">
         Instant Reaction
       </h1>
-      <p class="text-gray-500 mb-6 text-sm">Submit words, play rounds, crown a winner.</p>
       <input id="party-name-input" placeholder="Name your game (optional)"
-        class="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm
-               placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors mb-3" />
+        class="w-full bg-ink-900 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm
+               placeholder-ink-600 focus:outline-none focus:border-accent-500 transition-colors mb-3" />
       <button id="start-btn"
-        class="w-full py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-2xl text-lg font-bold
-               hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-violet-900/40 mb-6">
+        class="w-full py-4 bg-gradient-to-r from-brand to-accent-600 rounded-2xl text-lg font-bold
+               hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-accent-900/40 mb-6">
         New Game
       </button>
       <div class="flex items-center gap-3 mb-5">
-        <div class="flex-1 h-px bg-gray-800"></div>
-        <span class="text-gray-600 text-xs uppercase tracking-wide">or join</span>
-        <div class="flex-1 h-px bg-gray-800"></div>
+        <div class="flex-1 h-px bg-ink-800"></div>
+        <span class="text-ink-600 text-xs uppercase tracking-wide">or join</span>
+        <div class="flex-1 h-px bg-ink-800"></div>
       </div>
       <div class="flex gap-2">
         <input id="join-input" placeholder="Paste session link or code"
-          class="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm
-                 placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors" />
+          class="flex-1 bg-ink-900 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm
+                 placeholder-ink-600 focus:outline-none focus:border-accent-500 transition-colors" />
         <button id="join-btn"
-          class="px-5 py-3 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-xl text-sm font-medium transition-all">
+          class="px-5 py-3 bg-ink-800 hover:bg-ink-700 active:scale-95 rounded-xl text-sm font-medium transition-all">
           Join
         </button>
       </div>
@@ -52,18 +118,18 @@
 
   <!-- Player view -->
   <div id="view-player" class="hidden min-h-screen flex flex-col">
-    <div class="sticky top-0 z-10 bg-gray-950/80 backdrop-blur border-b border-gray-900 px-4 py-3">
+    <div class="sticky top-0 z-10 bg-ink-950/80 backdrop-blur border-b border-ink-900 px-4 py-3">
       <div class="max-w-xl mx-auto flex items-center justify-between gap-3">
-        <h1 id="player-party-name" class="text-lg font-black bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent truncate">
+        <h1 id="player-party-name" class="text-lg font-black bg-gradient-to-r from-brand to-accent-500 bg-clip-text text-transparent truncate">
           Instant Reaction
         </h1>
         <div class="flex items-center gap-2">
           <button id="player-copy-btn"
-            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
+            class="px-3 py-1.5 bg-ink-800 hover:bg-ink-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
             Copy Link
           </button>
           <button id="player-exit-btn"
-            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium text-gray-400 transition-all">
+            class="px-3 py-1.5 bg-ink-800 hover:bg-ink-700 active:scale-95 rounded-lg text-xs font-medium text-ink-400 transition-all">
             Exit
           </button>
         </div>
@@ -75,17 +141,17 @@
       <div class="max-w-xl mx-auto w-full px-4 pt-8 pb-3">
         <form id="word-form" class="flex gap-3">
           <input id="word-input" placeholder="Type a word…" autocomplete="off" spellcheck="false"
-            class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-lg text-white
-                   placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors" />
+            class="flex-1 bg-ink-900 border border-ink-800 rounded-2xl px-5 py-4 text-lg text-white
+                   placeholder-ink-600 focus:outline-none focus:border-accent-500 transition-colors" />
           <button type="submit"
-            class="px-6 py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-2xl font-bold
+            class="px-6 py-4 bg-gradient-to-r from-brand to-accent-600 rounded-2xl font-bold
                    hover:opacity-90 active:scale-95 transition-all">→</button>
         </form>
       </div>
       <div class="max-w-xl mx-auto w-full px-4 pb-10 flex-1">
-        <p class="text-xs text-gray-600 mb-3">Your submissions — only you can see these</p>
+        <p class="text-xs text-ink-600 mb-3">Your submissions — only you can see these</p>
         <div id="player-words-list" class="space-y-2"></div>
-        <div id="player-empty-state" class="text-center py-20 text-gray-700">
+        <div id="player-empty-state" class="text-center py-20 text-ink-700">
           <p class="text-3xl mb-3">✏️</p>
           <p class="text-sm">Submit your first word above!</p>
         </div>
@@ -96,26 +162,26 @@
     <div id="player-game" class="hidden flex flex-col flex-1 max-w-xl mx-auto w-full px-4 py-6 gap-8">
       <div class="flex flex-col items-center justify-center flex-1 gap-4">
         <p id="player-word-display" class="text-6xl font-black text-center tracking-tight leading-tight"></p>
-        <p id="player-round-label" class="text-gray-500 text-sm"></p>
+        <p id="player-round-label" class="text-ink-500 text-sm"></p>
         <div id="player-timer-wrap" class="hidden">
           <p id="player-timer" class="text-5xl font-black tabular-nums text-center"></p>
         </div>
       </div>
       <div>
-        <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Leaderboard</p>
+        <p class="text-xs text-ink-500 uppercase tracking-wide mb-2">Leaderboard</p>
         <div id="player-leaderboard" class="space-y-1"></div>
-        <p id="player-leaderboard-empty" class="text-gray-700 text-sm">No scores yet</p>
+        <p id="player-leaderboard-empty" class="text-ink-700 text-sm">No scores yet</p>
       </div>
     </div>
 
     <!-- Player: Finished -->
     <div id="player-finished" class="hidden flex flex-col flex-1 max-w-xl mx-auto w-full px-4 py-10 gap-8">
-      <p class="text-4xl font-black text-center bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">Game Over</p>
+      <p class="text-4xl font-black text-center bg-gradient-to-r from-brand to-accent-500 bg-clip-text text-transparent">Game Over</p>
       <div id="player-podium" class="flex items-end justify-center gap-3 h-36"></div>
       <div>
-        <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Final Scores</p>
+        <p class="text-xs text-ink-500 uppercase tracking-wide mb-2">Final Scores</p>
         <div id="player-final-leaderboard" class="space-y-1"></div>
-        <p id="player-final-leaderboard-empty" class="text-gray-700 text-sm hidden">No scores yet</p>
+        <p id="player-final-leaderboard-empty" class="text-ink-700 text-sm hidden">No scores yet</p>
       </div>
     </div>
   </div>
@@ -124,21 +190,21 @@
   <div id="view-admin" class="hidden min-h-screen flex flex-col">
 
     <!-- Header -->
-    <div class="sticky top-0 z-20 bg-gray-950/90 backdrop-blur border-b border-gray-900 px-4 py-3">
+    <div class="sticky top-0 z-20 bg-ink-950/90 backdrop-blur border-b border-ink-900 px-4 py-3">
       <div class="max-w-2xl mx-auto flex items-center justify-between gap-3">
         <div>
-          <h1 id="admin-party-name" class="text-lg font-black bg-gradient-to-r from-pink-500 to-violet-500 bg-clip-text text-transparent">
+          <h1 id="admin-party-name" class="text-lg font-black bg-gradient-to-r from-brand to-accent-500 bg-clip-text text-transparent">
             Instant Reaction
           </h1>
-          <span class="text-xs text-amber-400 font-medium">Admin</span>
+          <span class="text-xs text-warning font-medium">Admin</span>
         </div>
         <div class="flex items-center gap-2">
           <button id="admin-copy-player-btn"
-            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
+            class="px-3 py-1.5 bg-ink-800 hover:bg-ink-700 active:scale-95 rounded-lg text-xs font-medium transition-all">
             Copy Player Link
           </button>
           <button id="admin-exit-btn"
-            class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 active:scale-95 rounded-lg text-xs font-medium text-gray-400 transition-all">
+            class="px-3 py-1.5 bg-ink-800 hover:bg-ink-700 active:scale-95 rounded-lg text-xs font-medium text-ink-400 transition-all">
             Exit
           </button>
         </div>
@@ -146,7 +212,7 @@
     </div>
 
     <!-- Tab nav -->
-    <div class="sticky top-[57px] z-10 bg-gray-950/90 backdrop-blur border-b border-gray-800">
+    <div class="sticky top-[57px] z-10 bg-ink-950/90 backdrop-blur border-b border-ink-800">
       <div class="max-w-2xl mx-auto flex">
         <button id="tab-btn-words"
           class="flex-1 py-3 text-sm font-medium transition-colors border-b-2">Word Submission</button>
@@ -165,15 +231,15 @@
       </button>
       <form id="admin-word-form" class="flex gap-3">
         <input id="admin-word-input" placeholder="Submit your own word…" autocomplete="off" spellcheck="false"
-          class="flex-1 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-lg text-white
-                 placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors" />
+          class="flex-1 bg-ink-900 border border-ink-800 rounded-2xl px-5 py-4 text-lg text-white
+                 placeholder-ink-600 focus:outline-none focus:border-accent-500 transition-colors" />
         <button type="submit"
-          class="px-6 py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-2xl font-bold
+          class="px-6 py-4 bg-gradient-to-r from-brand to-accent-600 rounded-2xl font-bold
                  hover:opacity-90 active:scale-95 transition-all">→</button>
       </form>
-      <p id="admin-pool-count" class="hidden text-xs text-gray-500"></p>
+      <p id="admin-pool-count" class="hidden text-xs text-ink-500"></p>
       <div id="admin-words-list" class="space-y-2"></div>
-      <div id="admin-empty-state" class="text-center py-20 text-gray-700">
+      <div id="admin-empty-state" class="text-center py-20 text-ink-700">
         <p class="text-3xl mb-3">⏳</p>
         <p class="text-sm">Waiting for submissions…</p>
       </div>
@@ -189,22 +255,22 @@
       <div id="admin-round-setup" class="hidden flex flex-col gap-4">
         <h2 class="text-lg font-bold">New Round</h2>
         <input id="round-name-input" placeholder="Team / Player name" autocomplete="off"
-          class="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm
-                 placeholder-gray-600 focus:outline-none focus:border-violet-500 transition-colors" />
+          class="bg-ink-900 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm
+                 placeholder-ink-600 focus:outline-none focus:border-accent-500 transition-colors" />
         <div class="flex gap-3 items-center">
           <input id="round-time-input" type="number" value="60" min="10"
-            class="w-28 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm
-                   focus:outline-none focus:border-violet-500 transition-colors" />
-          <span class="text-gray-500 text-sm">seconds</span>
+            class="w-28 bg-ink-900 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm
+                   focus:outline-none focus:border-accent-500 transition-colors" />
+          <span class="text-ink-500 text-sm">seconds</span>
         </div>
         <div class="flex gap-3 items-center">
           <input id="round-cap-input" type="number" value="10" min="1" placeholder="∞"
-            class="w-28 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-white text-sm
-                   focus:outline-none focus:border-violet-500 transition-colors" />
-          <span class="text-gray-500 text-sm">word cap (blank = all)</span>
+            class="w-28 bg-ink-900 border border-ink-800 rounded-xl px-4 py-3 text-white text-sm
+                   focus:outline-none focus:border-accent-500 transition-colors" />
+          <span class="text-ink-500 text-sm">word cap (blank = all)</span>
         </div>
         <button id="start-round-btn"
-          class="py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-xl font-bold text-lg
+          class="py-4 bg-gradient-to-r from-brand to-accent-600 rounded-xl font-bold text-lg
                  hover:opacity-90 active:scale-95 transition-all">
           Start Round
         </button>
@@ -213,19 +279,19 @@
       <!-- Round active -->
       <div id="admin-round-active" class="hidden flex flex-col items-center gap-6 flex-1">
         <div class="flex justify-between w-full items-center">
-          <span id="admin-round-progress" class="text-gray-500 text-sm"></span>
+          <span id="admin-round-progress" class="text-ink-500 text-sm"></span>
           <span id="admin-round-timer" class="text-4xl font-black tabular-nums"></span>
-          <button id="btn-cancel-round" class="text-xs text-gray-600 hover:text-red-400 transition-colors">Cancel</button>
+          <button id="btn-cancel-round" class="text-xs text-ink-600 hover:text-danger-400 transition-colors">Cancel</button>
         </div>
         <div id="admin-current-word"
           class="text-6xl font-black text-center tracking-tight leading-tight flex-1 flex items-center justify-center"></div>
         <div class="flex gap-4 w-full pb-4">
           <button id="btn-correct"
-            class="flex-1 py-6 bg-green-700 hover:bg-green-600 active:scale-95 rounded-2xl text-xl font-bold transition-all">
+            class="flex-1 py-6 bg-success-700 hover:bg-success-600 active:scale-95 rounded-2xl text-xl font-bold transition-all">
             ✓ Correct
           </button>
           <button id="btn-wrong"
-            class="flex-1 py-6 bg-red-900 hover:bg-red-800 active:scale-95 rounded-2xl text-xl font-bold transition-all">
+            class="flex-1 py-6 bg-danger-900 hover:bg-danger-800 active:scale-95 rounded-2xl text-xl font-bold transition-all">
             ✗ Wrong
           </button>
         </div>
@@ -235,11 +301,11 @@
       <div id="admin-round-review" class="hidden flex flex-col gap-4">
         <div>
           <h2 class="text-lg font-bold">Round Results</h2>
-          <p id="admin-review-subtitle" class="text-gray-500 text-sm"></p>
+          <p id="admin-review-subtitle" class="text-ink-500 text-sm"></p>
         </div>
         <div id="admin-review-list" class="space-y-2"></div>
         <button id="submit-round-btn"
-          class="py-4 bg-gradient-to-r from-pink-500 to-violet-600 rounded-xl font-bold text-lg
+          class="py-4 bg-gradient-to-r from-brand to-accent-600 rounded-xl font-bold text-lg
                  hover:opacity-90 active:scale-95 transition-all mt-2">
           Next Round →
         </button>
@@ -252,12 +318,12 @@
       <div id="phase-indicator-results"></div>
       <div id="admin-podium" class="flex items-end justify-center gap-3 h-36"></div>
       <div>
-        <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Leaderboard</p>
+        <p class="text-xs text-ink-500 uppercase tracking-wide mb-2">Leaderboard</p>
         <div id="admin-leaderboard" class="space-y-1"></div>
-        <p id="admin-leaderboard-empty" class="text-gray-700 text-sm">No scores yet</p>
+        <p id="admin-leaderboard-empty" class="text-ink-700 text-sm">No scores yet</p>
       </div>
       <div id="admin-round-history-wrap" class="hidden">
-        <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Rounds</p>
+        <p class="text-xs text-ink-500 uppercase tracking-wide mb-2">Rounds</p>
         <div id="admin-round-history" class="space-y-2"></div>
       </div>
     </div>
@@ -339,9 +405,9 @@
       const medals  = ['🥇', '🥈', '🥉'];
       const heights = ['h-36', 'h-24', 'h-20'];
       const colors  = [
-        'bg-yellow-500/20 border-yellow-500/40',
-        'bg-gray-500/20 border-gray-500/40',
-        'bg-orange-700/20 border-orange-700/40',
+        'bg-medal-gold/20 border-medal-gold/40',
+        'bg-medal-silver/20 border-medal-silver/40',
+        'bg-medal-bronze/20 border-medal-bronze/40',
       ];
       order.forEach(rank => {
         if (!entries[rank]) return;
@@ -352,7 +418,7 @@
         block.className = `w-full ${heights[rank]} ${colors[rank]} border rounded-xl flex flex-col items-center justify-center gap-1`;
         block.innerHTML = `<span class="text-2xl">${medals[rank]}</span><span class="text-lg font-black tabular-nums">${score}</span>`;
         const label = document.createElement('p');
-        label.className = 'text-xs font-semibold text-center text-gray-300 truncate w-full px-1';
+        label.className = 'text-xs font-semibold text-center text-ink-300 truncate w-full px-1';
         label.textContent = name;
         col.append(block, label);
         podiumEl.appendChild(col);
@@ -365,10 +431,10 @@
       if (emptyEl) emptyEl.classList.toggle('hidden', entries.length > 0);
       entries.forEach(([name, score], i) => {
         const el = document.createElement('div');
-        el.className = 'flex items-center gap-3 py-2 border-b border-gray-800/60 last:border-0';
-        el.innerHTML = `<span class="text-gray-500 text-sm w-5 text-right">${i + 1}</span>
+        el.className = 'flex items-center gap-3 py-2 border-b border-ink-800/60 last:border-0';
+        el.innerHTML = `<span class="text-ink-500 text-sm w-5 text-right">${i + 1}</span>
           <span class="flex-1 font-semibold">${name}</span>
-          <span class="text-violet-300 font-bold tabular-nums">${score}</span>`;
+          <span class="text-accent-300 font-bold tabular-nums">${score}</span>`;
         listEl.appendChild(el);
       });
     }
@@ -532,12 +598,12 @@
           .sort((a, b) => a.text.localeCompare(b.text))
           .forEach(word => {
             const el = document.createElement('div');
-            el.className = 'word-row flex items-center gap-3 bg-gray-900 border border-gray-800/60 rounded-xl px-4 py-3';
+            el.className = 'word-row flex items-center gap-3 bg-ink-900 border border-ink-800/60 rounded-xl px-4 py-3';
             const span = document.createElement('span');
             span.className = 'flex-1 text-base font-semibold tracking-wide';
             span.textContent = word.text;
             const del = document.createElement('button');
-            del.className = 'text-xs text-gray-500 hover:text-red-400 transition-colors px-2';
+            del.className = 'text-xs text-ink-500 hover:text-danger-400 transition-colors px-2';
             del.textContent = 'Delete';
             del.addEventListener('click', () => deleteWord(sessionId, userId, word.key));
             el.append(span, del);
@@ -592,7 +658,7 @@
               const rem = round.timeLimit - (Date.now() - round.startedAt) / 1000;
               const el  = document.getElementById('player-timer');
               el.textContent = fmtTime(rem);
-              el.className = `text-5xl font-black tabular-nums text-center ${rem <= 10 ? 'text-red-400' : ''}`;
+              el.className = `text-5xl font-black tabular-nums text-center ${rem <= 10 ? 'text-danger-400' : ''}`;
             }, 250);
           } else {
             if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
@@ -631,7 +697,7 @@
         const open = snap.val() !== false;
         subsBtn.textContent = open ? 'Pause Submissions' : 'Resume Submissions';
         subsBtn.className = `self-start px-4 py-2 active:scale-95 rounded-lg text-xs font-medium transition-all ${
-          open ? 'bg-red-900/60 hover:bg-red-900 text-red-300' : 'bg-green-900/60 hover:bg-green-900 text-green-300'
+          open ? 'bg-danger-900/60 hover:bg-danger-900 text-danger-300' : 'bg-success-900/60 hover:bg-success-900 text-success-300'
         }`;
       });
       trackedListener(subsBtn, 'click', async () => {
@@ -650,8 +716,8 @@
           document.getElementById(`tab-btn-${t}`).className =
             `flex-1 py-3 text-sm font-medium transition-colors border-b-2 ${
               t === activeTab
-                ? 'border-violet-500 text-violet-400'
-                : 'border-transparent text-gray-500 hover:text-gray-300'
+                ? 'border-accent-500 text-accent-400'
+                : 'border-transparent text-ink-500 hover:text-ink-300'
             }`;
         });
       }
@@ -673,16 +739,16 @@
           if (isActive) {
             el.className = 'mb-1';
             const pill = document.createElement('span');
-            pill.className = 'text-xs text-green-400 font-medium';
+            pill.className = 'text-xs text-success-400 font-medium';
             pill.textContent = `Players see: ${phaseLabels[tabPhase]} ✓`;
             el.appendChild(pill);
           } else {
             el.className = 'flex items-center justify-between mb-1';
             const label = document.createElement('span');
-            label.className = 'text-xs text-gray-500';
+            label.className = 'text-xs text-ink-500';
             label.textContent = `Players see: ${phaseLabels[currentPhase] || 'Word Submission'}`;
             const btn = document.createElement('button');
-            btn.className = 'text-xs bg-violet-900/50 hover:bg-violet-700 text-violet-300 px-3 py-1 rounded-lg transition-colors font-medium';
+            btn.className = 'text-xs bg-accent-900/50 hover:bg-accent-700 text-accent-300 px-3 py-1 rounded-lg transition-colors font-medium';
             btn.textContent = startLabels[tab];
             btn.addEventListener('click', async () => {
               if (tab === 'play') {
@@ -799,7 +865,7 @@
               const rem = round.timeLimit - (Date.now() - round.startedAt) / 1000;
               const el  = document.getElementById('admin-round-timer');
               el.textContent = fmtTime(rem);
-              el.className = `text-4xl font-black tabular-nums ${rem <= 10 ? 'text-red-400' : ''}`;
+              el.className = `text-4xl font-black tabular-nums ${rem <= 10 ? 'text-danger-400' : ''}`;
               if (rem <= 0) {
                 clearInterval(timerInterval); timerInterval = null;
                 await endRound(sessionId, activeRoundId);
@@ -817,7 +883,7 @@
 
       const roundNameInput = document.getElementById('round-name-input');
       const roundNameError = document.createElement('p');
-      roundNameError.className = 'text-xs text-red-400 hidden';
+      roundNameError.className = 'text-xs text-danger-400 hidden';
       roundNameInput.insertAdjacentElement('afterend', roundNameError);
 
       trackedListener(roundNameInput, 'input', () => roundNameError.classList.add('hidden'));
@@ -938,7 +1004,7 @@
         const count = roundCorrectCount(round);
         const el = document.createElement('div');
         el.className = `flex items-center gap-3 rounded-xl px-4 py-3 border transition-opacity ${
-          round.hidden ? 'bg-gray-900/40 border-gray-800/30 opacity-40' : 'bg-gray-900 border-gray-800/60'
+          round.hidden ? 'bg-ink-900/40 border-ink-800/30 opacity-40' : 'bg-ink-900 border-ink-800/60'
         }`;
 
         const nameEl = document.createElement('span');
@@ -946,11 +1012,11 @@
         nameEl.textContent = round.name || 'Unnamed';
 
         const scoreEl = document.createElement('span');
-        scoreEl.className = 'text-sm text-violet-300 font-bold tabular-nums';
+        scoreEl.className = 'text-sm text-accent-300 font-bold tabular-nums';
         scoreEl.textContent = `${count} correct`;
 
         const hideBtn = document.createElement('button');
-        hideBtn.className = 'text-xs text-gray-500 hover:text-white transition-colors px-2';
+        hideBtn.className = 'text-xs text-ink-500 hover:text-white transition-colors px-2';
         hideBtn.textContent = round.hidden ? 'Show' : 'Hide';
         hideBtn.addEventListener('click', async () => {
           if (round.hidden) {
@@ -973,28 +1039,28 @@
 
     function makeAdminRow(word, sessionId) {
       const el = document.createElement('div');
-      el.className = 'word-row flex items-center gap-3 bg-gray-900 border border-gray-800/60 rounded-xl px-4 py-3';
+      el.className = 'word-row flex items-center gap-3 bg-ink-900 border border-ink-800/60 rounded-xl px-4 py-3';
 
       const countBadge = document.createElement('span');
-      countBadge.className = 'shrink-0 w-8 h-8 flex items-center justify-center bg-violet-900/50 text-violet-300 rounded-full text-sm font-bold';
+      countBadge.className = 'shrink-0 w-8 h-8 flex items-center justify-center bg-accent-900/50 text-accent-300 rounded-full text-sm font-bold';
       countBadge.textContent = word.count;
 
       const textSpan = document.createElement('span');
-      textSpan.className = `flex-1 text-base font-semibold tracking-wide ${word.flagged ? 'line-through text-gray-500' : ''}`;
+      textSpan.className = `flex-1 text-base font-semibold tracking-wide ${word.flagged ? 'line-through text-ink-500' : ''}`;
       textSpan.textContent = word.editedText || word.text;
       if (word.editedText) {
         const orig = document.createElement('span');
-        orig.className = 'text-xs text-gray-500 ml-2';
+        orig.className = 'text-xs text-ink-500 ml-2';
         orig.textContent = `(${word.text})`;
         textSpan.append(orig);
       }
 
       const editBtn = document.createElement('button');
-      editBtn.className = 'text-xs text-gray-500 hover:text-violet-400 transition-colors px-2';
+      editBtn.className = 'text-xs text-ink-500 hover:text-accent-400 transition-colors px-2';
       editBtn.textContent = 'Edit';
 
       const hideBtn = document.createElement('button');
-      hideBtn.className = 'text-xs px-2 transition-colors text-gray-500 hover:text-white';
+      hideBtn.className = 'text-xs px-2 transition-colors text-ink-500 hover:text-white';
 
       if (word.flagged) {
         hideBtn.textContent = 'Unhide';
@@ -1013,12 +1079,12 @@
       editBtn.addEventListener('click', () => {
         const input = document.createElement('input');
         input.value = word.editedText || word.text;
-        input.className = 'flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-violet-500';
+        input.className = 'flex-1 bg-ink-800 border border-ink-700 rounded-lg px-3 py-1 text-sm text-white focus:outline-none focus:border-accent-500';
         const saveBtn   = document.createElement('button');
-        saveBtn.className   = 'text-xs text-violet-400 hover:text-violet-300 px-2';
+        saveBtn.className   = 'text-xs text-accent-400 hover:text-accent-300 px-2';
         saveBtn.textContent = 'Save';
         const cancelBtn = document.createElement('button');
-        cancelBtn.className   = 'text-xs text-gray-500 hover:text-gray-300 px-2';
+        cancelBtn.className   = 'text-xs text-ink-500 hover:text-ink-300 px-2';
         cancelBtn.textContent = 'Cancel';
         el.innerHTML = '';
         el.append(countBadge, input, saveBtn, cancelBtn);
@@ -1054,24 +1120,24 @@
         .sort((a, b) => a.order - b.order)
         .forEach(item => {
           const el = document.createElement('div');
-          el.className = 'flex items-center gap-3 bg-gray-900 border border-gray-800/60 rounded-xl px-4 py-3';
+          el.className = 'flex items-center gap-3 bg-ink-900 border border-ink-800/60 rounded-xl px-4 py-3';
 
           const textEl = document.createElement('span');
           textEl.className = 'flex-1 text-sm font-semibold';
           textEl.textContent = displayText(words, item.key);
 
           const seg = document.createElement('div');
-          seg.className = 'flex rounded-lg overflow-hidden border border-gray-700 shrink-0';
+          seg.className = 'flex rounded-lg overflow-hidden border border-ink-700 shrink-0';
 
           const options = [
-            { value: 'correct', label: '✓', activeClass: 'bg-green-700 text-white' },
-            { value: 'wrong',   label: '✗', activeClass: 'bg-red-800 text-white' },
+            { value: 'correct', label: '✓', activeClass: 'bg-success-700 text-white' },
+            { value: 'wrong',   label: '✗', activeClass: 'bg-danger-800 text-white' },
           ];
           const btns = options.map(opt => {
             const btn = document.createElement('button');
             btn.textContent = opt.label;
             btn.className = `px-3 py-1.5 text-sm font-bold transition-colors ${
-              item.result === opt.value ? opt.activeClass : 'bg-gray-900 text-gray-500 hover:text-gray-300'
+              item.result === opt.value ? opt.activeClass : 'bg-ink-900 text-ink-500 hover:text-ink-300'
             }`;
             btn.addEventListener('click', async () => {
               if (item.result === opt.value) return;
@@ -1079,7 +1145,7 @@
               item.result = opt.value;
               btns.forEach((b, i) => {
                 b.className = `px-3 py-1.5 text-sm font-bold transition-colors ${
-                  item.result === options[i].value ? options[i].activeClass : 'bg-gray-900 text-gray-500 hover:text-gray-300'
+                  item.result === options[i].value ? options[i].activeClass : 'bg-ink-900 text-ink-500 hover:text-ink-300'
                 }`;
               });
               results[item.key] = { ...results[item.key], result: opt.value };
